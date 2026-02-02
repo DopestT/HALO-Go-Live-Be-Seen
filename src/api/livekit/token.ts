@@ -6,10 +6,18 @@ import { AccessToken } from 'livekit-server-sdk';
  * The livekit-server-sdk requires Node.js and should not be bundled with the client app.
  */
 export const generateStreamToken = async (identity: string, roomName: string) => {
+  // Validate required environment variables
+  const apiKey = process.env.LIVEKIT_API_KEY;
+  const apiSecret = process.env.LIVEKIT_API_SECRET;
+  
+  if (!apiKey || !apiSecret) {
+    throw new Error('Missing required environment variables: LIVEKIT_API_KEY and/or LIVEKIT_API_SECRET');
+  }
+
   // Create a token with the LiveKit API Key and Secret stored in your .env
   const at = new AccessToken(
-    process.env.LIVEKIT_API_KEY,
-    process.env.LIVEKIT_API_SECRET,
+    apiKey,
+    apiSecret,
     { identity }
   );
 

@@ -1,6 +1,5 @@
 // src/api/webhooks/stripe.ts
 import { Request, Response } from 'express';
-import { PALETTE } from '../../constants/theme'; // Copilot will use this for logs/UI
 
 // TODO: Import database module when backend is set up
 // import { db } from '../database';
