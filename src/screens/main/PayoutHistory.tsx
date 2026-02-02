@@ -92,7 +92,7 @@ const getStatusDisplay = (status: string): { text: string; color: string } => {
     case 'in_transit':
       return { text: 'In Transit', color: PALETTE.haloCyan };
     case 'failed':
-      return { text: 'Failed', color: PALETTE.warning };
+      return { text: 'Failed', color: '#EF4444' }; // Red for error state
     default:
       return { text: 'Unknown', color: PALETTE.haloWhite };
   }
