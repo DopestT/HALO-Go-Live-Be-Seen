@@ -3,145 +3,139 @@ import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
 import { GlassPanel } from '../../components/ui/GlassPanel';
 import { PALETTE, TYPOGRAPHY, LAYOUT } from '../../constants/theme';
 
-// Type definition for Stripe transfer/payout
-interface StripePayout {
+interface PayoutTransfer {
   id: string;
-  amount: number; // Amount in cents
+  amount: number;
   currency: string;
-  status: 'paid' | 'pending' | 'in_transit' | 'failed';
+  status: 'paid' | 'pending' | 'failed';
   created: number; // Unix timestamp
   arrival_date: number; // Unix timestamp
-  destination: string; // Bank account last 4 digits
+  description: string;
 }
 
-// Mock data representing Stripe transfer history
-const MOCK_PAYOUTS: StripePayout[] = [
+// Mock data representing Stripe transfers
+const MOCK_TRANSFERS: PayoutTransfer[] = [
   {
     id: 'po_1234567890',
-    amount: 142050, // $1,420.50
+    amount: 1420.50,
     currency: 'usd',
     status: 'paid',
-    created: 1704067200, // Jan 1, 2024
-    arrival_date: 1704153600,
-    destination: '****4242',
+    created: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7 days ago
+    arrival_date: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    description: 'Weekly earnings payout',
   },
   {
     id: 'po_0987654321',
-    amount: 89375, // $893.75
+    amount: 850.25,
     currency: 'usd',
     status: 'pending',
-    created: 1706745600, // Feb 1, 2024
-    arrival_date: 1706832000,
-    destination: '****4242',
+    created: Date.now() - 2 * 24 * 60 * 60 * 1000, // 2 days ago
+    arrival_date: Date.now() + 1 * 24 * 60 * 60 * 1000,
+    description: 'Weekly earnings payout',
   },
   {
     id: 'po_1122334455',
-    amount: 256090, // $2,560.90
+    amount: 2105.75,
     currency: 'usd',
     status: 'paid',
-    created: 1701475200, // Dec 2, 2023
-    arrival_date: 1701561600,
-    destination: '****4242',
+    created: Date.now() - 14 * 24 * 60 * 60 * 1000, // 14 days ago
+    arrival_date: Date.now() - 12 * 24 * 60 * 60 * 1000,
+    description: 'Weekly earnings payout',
   },
   {
     id: 'po_5544332211',
-    amount: 67320, // $673.20
+    amount: 675.00,
     currency: 'usd',
-    status: 'in_transit',
-    created: 1709424000, // Mar 3, 2024
-    arrival_date: 1709510400,
-    destination: '****4242',
+    status: 'paid',
+    created: Date.now() - 21 * 24 * 60 * 60 * 1000, // 21 days ago
+    arrival_date: Date.now() - 19 * 24 * 60 * 60 * 1000,
+    description: 'Weekly earnings payout',
   },
 ];
 
-/**
- * Format amount in cents to currency with tabular numbers
- */
-const formatCurrency = (amountInCents: number): string => {
-  const dollars = Math.floor(amountInCents / 100);
-  const cents = amountInCents % 100;
-  
-  // Format with commas for thousands
-  const formattedDollars = dollars.toLocaleString('en-US');
-  const formattedCents = cents.toString().padStart(2, '0');
-  
-  return `$${formattedDollars}.${formattedCents}`;
+const formatCurrency = (amount: number, currency: string): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 };
 
-/**
- * Format Unix timestamp to readable date
- */
 const formatDate = (timestamp: number): string => {
-  const date = new Date(timestamp * 1000);
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const day = date.getDate();
-  const year = date.getFullYear();
-  
-  return `${month} ${day}, ${year}`;
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
 
-/**
- * Get status display text and color
- */
-const getStatusDisplay = (status: string): { text: string; color: string } => {
+const getStatusColor = (status: string): string => {
   switch (status) {
     case 'paid':
-      return { text: 'Completed', color: PALETTE.trustBlue };
+      return PALETTE.trustBlue;
     case 'pending':
-      return { text: 'Pending', color: PALETTE.warning };
-    case 'in_transit':
-      return { text: 'In Transit', color: PALETTE.haloCyan };
+      return PALETTE.warning;
     case 'failed':
-      return { text: 'Failed', color: '#EF4444' }; // Red for error state
+      return '#EF4444';
     default:
-      return { text: 'Unknown', color: PALETTE.haloWhite };
+      return PALETTE.haloWhite;
   }
 };
 
+const getStatusLabel = (status: string): string => {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
 export default function PayoutHistory() {
-  const renderPayoutItem = ({ item }: { item: StripePayout }) => {
-    const statusDisplay = getStatusDisplay(item.status);
-    
-    return (
-      <GlassPanel style={styles.payoutCard}>
-        <View style={styles.payoutHeader}>
-          <Text style={styles.payoutAmount}>{formatCurrency(item.amount)}</Text>
-          <Text style={[styles.statusText, { color: statusDisplay.color }]}>
-            {statusDisplay.text}
+  const renderTransfer = ({ item }: { item: PayoutTransfer }) => (
+    <GlassPanel style={styles.transferCard} intensity={10}>
+      <View style={styles.transferHeader}>
+        <View style={styles.transferInfo}>
+          <Text style={styles.transferAmount}>
+            {formatCurrency(item.amount, item.currency)}
           </Text>
+          <Text style={styles.transferDescription}>{item.description}</Text>
         </View>
-        
-        <View style={styles.payoutDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Initiated</Text>
-            <Text style={styles.detailValue}>{formatDate(item.created)}</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Expected Arrival</Text>
-            <Text style={styles.detailValue}>{formatDate(item.arrival_date)}</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Destination</Text>
-            <Text style={styles.detailValue}>{item.destination}</Text>
-          </View>
+        <Text 
+          style={[
+            styles.statusText, 
+            { color: getStatusColor(item.status) }
+          ]}
+        >
+          {getStatusLabel(item.status)}
+        </Text>
+      </View>
+      
+      <View style={styles.transferDetails}>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Initiated</Text>
+          <Text style={styles.detailValue}>{formatDate(item.created)}</Text>
         </View>
-      </GlassPanel>
-    );
-  };
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Arrival</Text>
+          <Text style={styles.detailValue}>{formatDate(item.arrival_date)}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>ID</Text>
+          <Text style={styles.detailValue}>{item.id}</Text>
+        </View>
+      </View>
+    </GlassPanel>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerSection}>
+      <View style={styles.headerContainer}>
         <Text style={styles.header}>Payout History</Text>
-        <Text style={styles.subtitle}>Your Stripe transfer history</Text>
+        <Text style={styles.subheader}>Stripe Transfer Records</Text>
       </View>
 
       <FlatList
-        data={MOCK_PAYOUTS}
+        data={MOCK_TRANSFERS}
         keyExtractor={(item) => item.id}
-        renderItem={renderPayoutItem}
+        renderItem={renderTransfer}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
@@ -154,10 +148,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: PALETTE.voidBlack,
   },
-  headerSection: {
+  headerContainer: {
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   header: {
     fontFamily: TYPOGRAPHY.bold,
@@ -165,10 +159,10 @@ const styles = StyleSheet.create({
     color: PALETTE.haloWhite,
     letterSpacing: TYPOGRAPHY.tracking,
   },
-  subtitle: {
+  subheader: {
     fontFamily: TYPOGRAPHY.regular,
     fontSize: 14,
-    color: 'rgba(234, 246, 255, 0.6)',
+    color: PALETTE.haloCyan,
     marginTop: 4,
     letterSpacing: TYPOGRAPHY.tracking,
   },
@@ -176,21 +170,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 100, // Space for tab bar
   },
-  payoutCard: {
+  transferCard: {
     marginBottom: LAYOUT.spacing,
     padding: 20,
   },
-  payoutHeader: {
+  transferHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
-  payoutAmount: {
+  transferInfo: {
+    flex: 1,
+  },
+  transferAmount: {
     fontFamily: TYPOGRAPHY.bold,
     fontSize: 24,
     color: PALETTE.haloWhite,
-    fontVariant: ['tabular-nums'], // Tabular numbers for currency
+    letterSpacing: TYPOGRAPHY.tracking,
+    fontVariant: ['tabular-nums'],
+  },
+  transferDescription: {
+    fontFamily: TYPOGRAPHY.regular,
+    fontSize: 14,
+    color: 'rgba(234, 246, 255, 0.6)',
+    marginTop: 4,
     letterSpacing: TYPOGRAPHY.tracking,
   },
   statusText: {
@@ -199,25 +203,29 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  payoutDetails: {
-    gap: 12,
+  transferDetails: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    paddingTop: 16,
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   detailLabel: {
     fontFamily: TYPOGRAPHY.regular,
-    fontSize: 14,
+    fontSize: 12,
     color: PALETTE.haloCyan,
-    letterSpacing: TYPOGRAPHY.tracking,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   detailValue: {
     fontFamily: TYPOGRAPHY.regular,
-    fontSize: 14,
-    color: PALETTE.haloWhite,
-    fontVariant: ['tabular-nums'], // Tabular numbers for dates and amounts
+    fontSize: 12,
+    color: 'rgba(234, 246, 255, 0.7)',
     letterSpacing: TYPOGRAPHY.tracking,
+    fontVariant: ['tabular-nums'],
   },
 });
