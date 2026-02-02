@@ -32,8 +32,11 @@ export const LiveStreamOverlay: React.FC<LiveStreamOverlayProps> = ({
     setReported(true);
     setShowReportConfirmation(true);
     
-    // In production, send report to backend
-    console.log(`Reported stream: ${streamId}`);
+    // TODO: In production, send report to backend API
+    // This console.log is for development only
+    if (__DEV__) {
+      console.log(`Reported stream: ${streamId}`);
+    }
     
     // Auto-hide confirmation after 2 seconds
     setTimeout(() => {

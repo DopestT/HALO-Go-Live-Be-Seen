@@ -26,7 +26,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
   const login = async (email: string, password: string): Promise<void> => {
-    // Simulate API call - in production, this would authenticate with backend
+    // MOCK IMPLEMENTATION - DO NOT USE WITH REAL CREDENTIALS
+    // In production, this would authenticate with a secure backend
+    // Password parameter intentionally unused in mock to avoid security risks
     // For demonstration, create a mock user
     const mockUser: User = {
       id: '1',

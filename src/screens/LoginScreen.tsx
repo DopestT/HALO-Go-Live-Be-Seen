@@ -15,16 +15,21 @@ export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    if (!email || !password) return;
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
     
     setIsLoading(true);
+    setError('');
     try {
       await login(email, password);
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (err) {
+      setError('Unable to sign in. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +73,10 @@ export const LoginScreen: React.FC = () => {
             autoCorrect={false}
           />
 
+          {error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : null}
+
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleLogin}
@@ -76,10 +85,6 @@ export const LoginScreen: React.FC = () => {
             <Text style={styles.buttonText}>
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.linkButton}>
-            <Text style={styles.linkText}>Create an account</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -157,13 +162,10 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontVariant: ['tabular-nums'],
   },
-  linkButton: {
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  linkText: {
+  errorText: {
     fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
+    color: theme.colors.error,
+    marginTop: theme.spacing.md,
     fontVariant: ['tabular-nums'],
   },
 });
