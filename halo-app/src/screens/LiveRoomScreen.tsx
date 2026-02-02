@@ -127,8 +127,7 @@ const styles = StyleSheet.create({
   },
   safetyButton: {
     paddingVertical: THEME.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.overlay.medium,
+    marginBottom: THEME.spacing.xs,
   },
   safetyButtonText: {
     fontSize: THEME.fontSize.sm,
