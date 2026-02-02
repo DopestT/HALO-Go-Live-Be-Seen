@@ -15,9 +15,12 @@ jobs:
         with:
           expo-version: latest
           eas-cache: true
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install Dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install -g eas-cli
 
       - name: 🚀 Build App (EAS)
         run: eas build --platform all --non-interactive
