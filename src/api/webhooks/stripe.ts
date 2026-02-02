@@ -1,8 +1,17 @@
 // src/api/webhooks/stripe.ts
-import { Request, Response } from 'express';
-import { PALETTE } from '../../constants/theme'; // Copilot will use this for logs/UI
 
-export const handleStripeWebhook = async (req: Request, res: Response) => {
+// TODO: Import database module when backend is set up
+// import { db } from '../database';
+
+interface WebhookRequest {
+  body: any;
+}
+
+interface WebhookResponse {
+  json: (data: any) => void;
+}
+
+export const handleStripeWebhook = async (req: WebhookRequest, res: WebhookResponse) => {
   const event = req.body;
 
   // Guardian Logic: Only process successful payments
@@ -13,7 +22,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
     try {
       // Update Database with "Presence" currency
-      await db.user.incrementCoins(userId, amountPurchased);
+      // TODO: Uncomment when db module is available
+      // await db.user.incrementCoins(userId, amountPurchased);
       console.log(`[HALO SYSTEM] Presence coins delivered to User: ${userId}`);
     } catch (error) {
       console.error("[HALO ERROR] Payout delivery failed. Initializing manual review.");

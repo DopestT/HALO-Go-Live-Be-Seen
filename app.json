@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "HALO",
-    "slug": "halo-app",
+    "slug": "halo-go-live-be-seen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,33 +9,22 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#020617"
+      "backgroundColor": "#000000"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "app.halo.social",
-      "config": {
-        "usesNonExemptEncryption": false
-      },
-      "infoPlist": {
-        "NSCameraUsageDescription": "HALO requires camera access for you to Go Live and share your presence.",
-        "NSMicrophoneUsageDescription": "HALO requires microphone access so your audience can hear you during streams.",
-        "NSPhotoLibraryUsageDescription": "Access is required to set your profile presence image."
-      }
+      "supportsTablet": true
     },
     "android": {
-      "package": "app.halo.social",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#020617"
-      },
-      "permissions": ["CAMERA", "RECORD_AUDIO"]
-    },
-    "extra": {
-      "eas": {
-        "projectId": "your-expo-project-id"
+        "backgroundColor": "#000000"
       }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }
