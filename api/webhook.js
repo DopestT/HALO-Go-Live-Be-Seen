@@ -1,11 +1,24 @@
-# HALO INFRASTRUCTURE KEYS
-LIVEKIT_API_KEY=API8Y8PVKY2VfTn
-LIVEKIT_API_SECRET=tofMeHfvcqnlZQaHoKMBCxVe3ip6Wv99NrehsBQ4MK9B
-STRIPE_SECRET_KEY=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
-STRIPE_WEBHOOK_SECRET=whsec_ARui0z83aoNMNmmNMknIsJW0BkenP2yx
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+module.exports = async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  let event;
 
-# MOBILE DEPLOYMENT
-EXPO_PROJECT_ID=your_expo_id
-FIREBASE_SENDER_ID=your_fcm_id
+  try {
+    // We use req.body directly in Vercel Serverless Functions
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error(`❌ Webhook Error: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    console.log('💰 Payment successful for:', session.customer_email);
+    // Add your "Halo Coin" logic here!
+  }
+
+  res.status(200).json({ received: true });
+};
