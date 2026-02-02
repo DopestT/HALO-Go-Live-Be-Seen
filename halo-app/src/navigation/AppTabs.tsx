@@ -2,7 +2,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens';
 import { COLORS, THEME } from '../constants';
-import { Text } from 'react-native';
 
 export type AppTabsParamList = {
   Feed: undefined;
