@@ -1,10 +1,17 @@
 // src/api/webhooks/stripe.ts
-import { Request, Response } from 'express';
 
 // TODO: Import database module when backend is set up
 // import { db } from '../database';
 
-export const handleStripeWebhook = async (req: Request, res: Response) => {
+interface WebhookRequest {
+  body: any;
+}
+
+interface WebhookResponse {
+  json: (data: any) => void;
+}
+
+export const handleStripeWebhook = async (req: WebhookRequest, res: WebhookResponse) => {
   const event = req.body;
 
   // Guardian Logic: Only process successful payments

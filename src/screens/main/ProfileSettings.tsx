@@ -5,7 +5,16 @@ import { PALETTE, TYPOGRAPHY, LAYOUT } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function ProfileSettings() {
-  const { isAdultVerified, adultModeEnabled, toggleAdultMode } = useAuth();
+  const { user, updateUser } = useAuth();
+  
+  const isAdultVerified = (user?.age ?? 0) >= 18;
+  const adultModeEnabled = user?.adultModeEnabled ?? false;
+  
+  const toggleAdultMode = () => {
+    if (isAdultVerified) {
+      updateUser({ adultModeEnabled: !adultModeEnabled });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
