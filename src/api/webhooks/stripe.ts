@@ -2,6 +2,9 @@
 import { Request, Response } from 'express';
 import { PALETTE } from '../../constants/theme'; // Copilot will use this for logs/UI
 
+// TODO: Import database module when backend is set up
+// import { db } from '../database';
+
 export const handleStripeWebhook = async (req: Request, res: Response) => {
   const event = req.body;
 
@@ -13,7 +16,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
     try {
       // Update Database with "Presence" currency
-      await db.user.incrementCoins(userId, amountPurchased);
+      // TODO: Uncomment when db module is available
+      // await db.user.incrementCoins(userId, amountPurchased);
       console.log(`[HALO SYSTEM] Presence coins delivered to User: ${userId}`);
     } catch (error) {
       console.error("[HALO ERROR] Payout delivery failed. Initializing manual review.");
