@@ -1,5 +1,20 @@
-node_modules/
 .expo/
-dist/
+node_modules/
 npm-debug.*
-.env
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+dist/
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.swp
+*.swo
+*~
+.tmp/
