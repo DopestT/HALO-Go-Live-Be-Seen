@@ -1,35 +1,145 @@
-# HALO — Go Live, Be Seen
+# HALO - Go Live. Be Seen.
 
-## 1. Project Essence
-HALO is a social networking platform focused on "Presence over Performance." It utilizes a calm, guardian-like aesthetic to provide safe, intentional live streaming.
+HALO is a social networking platform focused on live streaming with a refined, minimal aesthetic.
 
-## 2. Design Architecture (LOCKED)
-- **Aesthetic:** Dark-first, Void Black (#020617), Glassmorphism, and Soft Glow accents.
-- **Typography:** Inter/SF Pro with Tabular Numbers.
-- **Principles:** Presence > Performance, Calm > Chaos, Soft Status (No leaderboards).
+## Design Philosophy
 
-## 3. Core Tech Stack
-- **Frontend:** React Native (Expo)
-- **Streaming:** LiveKit SDK
-- **Backend:** Node.js + TypeScript + PostgreSQL
-- **Payments:** Apple IAP / Google Billing (In-app), Stripe (Payouts)
+- **Void Black Aesthetic**: Dark, sophisticated color palette with no neon or gaming-style elements
+- **Rounded Geometry**: All UI elements use consistent, rounded corners (8-20px radius)
+- **Tabular Numbers**: Consistent number spacing throughout the interface
+- **Glassmorphism**: Semi-transparent surfaces with subtle borders and shadows
+- **Low-Density Layout**: Generous spacing for comfortable viewing
 
-## 4. Adult Mode (Non-Negotiable)
-Adult Mode is disabled by default and requires:
-1. Explicit Opt-in.
-2. Age Verification (18+).
-3. Content tagging during "Go Live" flow.
-Note: Adult content never appears in thumbnails and is gated behind a 18+ label.
+## Architecture
 
-## 5. Environment Setup
-Create a `.env` file in the root directory with the following keys:
-`LIVEKIT_API_KEY=`
-`LIVEKIT_API_SECRET=`
-`STRIPE_SECRET_KEY=`
-`EXPO_PROJECT_ID=`
-`FIREBASE_CONFIG_JSON=`
+### Core Components
 
-## 6. Development
-`npm install`
-`npx expo start`
+1. **theme.ts**: Centralized design system
+   - Void Black color palette
+   - Spacing and typography scales
+   - Border radius values
+   - Shadow definitions
+   - Glassmorphism settings
 
+2. **AuthContext.tsx**: Authentication state management
+   - User session handling
+   - Adult Mode toggle
+   - Age verification tracking
+
+3. **filterContentForUser utility**: Content gating
+   - Filters content based on Adult Mode settings
+   - Age-based content restrictions
+   - Safe defaults for unauthenticated users
+
+### Screens
+
+1. **LoginScreen**: Glassmorphism-based authentication
+   - Semi-transparent card with backdrop blur
+   - Clean, minimal input fields
+   - No urgency-based copy
+
+2. **DiscoveryFeed**: Low-density content feed
+   - Generous spacing between items (24px)
+   - Clear visual hierarchy
+   - Viewer counts with tabular numbers
+
+3. **LiveStreamOverlay**: Stream viewing interface
+   - One-tap reporting functionality
+   - Minimalist control layout
+   - Clean confirmation feedback
+
+## Features
+
+### Adult Mode Gating
+Content is automatically filtered based on:
+- User authentication status
+- Adult Mode preference
+- Age verification (18+ requirement)
+
+### One-Tap Reporting
+- Simple, immediate reporting action
+- Clean confirmation feedback
+- No multi-step confirmation flows
+
+## Getting Started
+
+### Prerequisites
+- Node.js 16+
+- npm or yarn
+- Expo CLI
+
+### Installation
+
+```bash
+npm install
+```
+
+### Running the App
+
+```bash
+# Start Expo development server
+npm start
+
+# Run on iOS
+npm run ios
+
+# Run on Android
+npm run android
+
+# Run on Web
+npm run web
+```
+
+## Project Structure
+
+```
+/
+├── src/
+│   ├── components/
+│   │   └── LiveStreamOverlay.tsx
+│   ├── contexts/
+│   │   └── AuthContext.tsx
+│   ├── screens/
+│   │   ├── LoginScreen.tsx
+│   │   └── DiscoveryFeed.tsx
+│   ├── utils/
+│   │   └── filterContentForUser.ts
+│   └── theme.ts
+├── App.tsx
+├── index.js
+├── package.json
+└── tsconfig.json
+```
+
+## Design Specifications
+
+### Colors
+- Void Black: `#000000`
+- Deep Gray: `#121212`
+- Dark Gray: `#1a1a1a`
+- Text Primary: `#ffffff`
+- Text Secondary: `#b0b0b0`
+
+### Typography
+- All numbers use `tabular-nums` variant
+- Font sizes: 12-32px scale
+- Line heights: 1.2-1.75
+
+### Spacing
+- XS: 4px
+- SM: 8px
+- MD: 16px
+- LG: 24px
+- XL: 32px
+- XXL: 48px
+
+### Border Radius
+- Small: 8px
+- Medium: 12px
+- Large: 16px
+- Extra Large: 20px
+- Round: 9999px
+
+## License
+
+MIT 
