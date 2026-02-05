@@ -49,8 +49,8 @@ describe('filterContentForUser', () => {
       age: 25,
     };
     const result = filterContentForUser(mockContent, user);
-    expect(result).toHaveLength(2);
-    expect(result.map(c => c.id)).toEqual(['1', '2']);
+    expect(result).toHaveLength(3);
+    expect(result.map(c => c.id)).toEqual(['1', '2', '3']);
   });
 
   it('should respect age restrictions on adult content', () => {

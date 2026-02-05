@@ -14,20 +14,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-
-interface AuthState {
-  isAuthenticated: boolean;
-  isAdultVerified: boolean; // True if DOB confirms 18+
-  adultModeEnabled: boolean; // True only if user OPT-IN
-  user: any | null;
-}
-
-interface AuthContextType extends AuthState {
-  signIn: (userData: any) => Promise<void>;
-  signOut: () => void;
-  verifyAge: (dateOfBirth: Date) => boolean; // Returns success/fail
-  toggleAdultMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,75 +67,5 @@ export const useAuth = (): AuthContextType => {
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
-  const [isAdultVerified, setIsAdultVerified] = useState(false);
-  const [adultModeEnabled, setAdultModeEnabled] = useState(false);
-
-  // Simple mock sign-in
-  const signIn = async (userData: any) => {
-    setUser(userData);
-    // Note: Adult mode always resets to FALSE on new login for safety
-    setAdultModeEnabled(false); 
-  };
-
-  const signOut = () => {
-    setUser(null);
-    setIsAdultVerified(false);
-    setAdultModeEnabled(false);
-  };
-
-  // The Gate Logic
-  const verifyAge = (dateOfBirth: Date): boolean => {
-    const today = new Date();
-    let age = today.getFullYear() - dateOfBirth.getFullYear();
-    const m = today.getMonth() - dateOfBirth.getMonth();
-    
-    // Adjust if birthday hasn't happened yet this year
-    if (m < 0 || (m === 0 && today.getDate() < dateOfBirth.getDate())) {
-      age--;
-    }
-
-    if (age >= 18) {
-      setIsAdultVerified(true);
-      return true;
-    } else {
-      setIsAdultVerified(false);
-      setAdultModeEnabled(false); // Force disable
-      return false;
-    }
-  };
-
-  // The Toggle (Safety Switch)
-  const toggleAdultMode = () => {
-    if (!isAdultVerified) {
-      console.warn("Guardian Protocol: Cannot enable Adult Mode. User not verified.");
-      setAdultModeEnabled(false);
-      return;
-    }
-    setAdultModeEnabled(prev => !prev);
-  };
-
-  return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        isAuthenticated: !!user, 
-        isAdultVerified, 
-        adultModeEnabled, 
-        signIn, 
-        signOut, 
-        verifyAge, 
-        toggleAdultMode 
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
