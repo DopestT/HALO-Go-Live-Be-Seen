@@ -1,6 +1,7 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { DiscoveryFeed } from './src/screens/DiscoveryFeed';
@@ -21,6 +22,7 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <AppContent />
+        <Analytics />
       </AuthProvider>
     </SafeAreaProvider>
   );
