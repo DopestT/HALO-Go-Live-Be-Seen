@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:roadmap": "node test-roadmap.js",
     "roadmap:validate": "node validate-roadmap.js",
     "roadmap:progress": "node roadmap-progress.js",
     "roadmap:progress:md": "node roadmap-progress.js markdown",
