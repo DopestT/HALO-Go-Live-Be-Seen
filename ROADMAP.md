@@ -212,9 +212,9 @@ Phased rollout with creator seeding and moderation staffing.
 - ⏸️ **Not Started:** 48 tasks (83%)
 
 ### By Priority
-- 🔴 **Critical:** 6 tracks (Brand, UI, Backend, Streaming, Adult Mode, Safety, QA)
+- 🔴 **Critical:** 7 tracks (Brand, UI, Backend, Streaming, Adult Mode, Safety, QA)
 - 🟡 **High:** 4 tracks (Psychology, Monetization, Store, Launch)
-- 🟢 **Medium:** 2 tracks (Web)
+- 🟢 **Medium:** 1 track (Web)
 
 ### By Track
 | Track | Progress | Hours | Status |
