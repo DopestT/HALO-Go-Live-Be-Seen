@@ -12,6 +12,7 @@ type Config struct {
 	Database DatabaseConfig
 	Redis    RedisConfig
 	JWT      JWTConfig
+	CORS     CORSConfig
 }
 
 // ServerConfig holds server-related configuration
@@ -45,9 +46,15 @@ type RedisConfig struct {
 }
 
 // JWTConfig holds JWT configuration
+// JWTConfig holds JWT configuration
 type JWTConfig struct {
 	SecretKey       string
 	ExpirationHours int
+}
+
+// CORSConfig holds CORS configuration
+type CORSConfig struct {
+	AllowedOrigins string
 }
 
 // Load loads configuration from environment variables
@@ -80,6 +87,9 @@ func Load() (*Config, error) {
 		JWT: JWTConfig{
 			SecretKey:       getEnv("JWT_SECRET_KEY", "your-secret-key-change-in-production"),
 			ExpirationHours: getEnvAsInt("JWT_EXPIRATION_HOURS", 24),
+		},
+		CORS: CORSConfig{
+			AllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "*"),
 		},
 	}
 

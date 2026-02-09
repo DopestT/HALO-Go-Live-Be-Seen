@@ -8,6 +8,7 @@ import (
 
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/database"
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/models"
+	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/pkg/logger"
 )
 
 var (
@@ -50,7 +51,8 @@ func (s *Service) GetVideoByID(ctx context.Context, id int64) (*models.VideoWith
 	// Get engagement data from Redis
 	engagement, err := s.redis.GetMultipleEngagements(ctx, id)
 	if err != nil {
-		// Log error but don't fail the request
+		// Log error but don't fail the request - engagement is non-critical
+		logger.WarnLogger.Printf("Failed to get engagement data for video %d: %v", id, err)
 		engagement = map[string]int64{
 			"live_viewers": 0,
 			"likes":        0,
@@ -78,7 +80,8 @@ func (s *Service) GetVideos(ctx context.Context, limit, offset int, isLive bool)
 	for i, video := range videos {
 		engagement, err := s.redis.GetMultipleEngagements(ctx, video.ID)
 		if err != nil {
-			// Log error but don't fail the request
+			// Log error but don't fail the request - engagement is non-critical
+			logger.WarnLogger.Printf("Failed to get engagement data for video %d: %v", video.ID, err)
 			engagement = map[string]int64{
 				"live_viewers": 0,
 				"likes":        0,
@@ -109,6 +112,8 @@ func (s *Service) GetVideosByUserID(ctx context.Context, userID int64, limit, of
 	for i, video := range videos {
 		engagement, err := s.redis.GetMultipleEngagements(ctx, video.ID)
 		if err != nil {
+			// Log error but don't fail the request - engagement is non-critical
+			logger.WarnLogger.Printf("Failed to get engagement data for video %d: %v", video.ID, err)
 			engagement = map[string]int64{
 				"live_viewers": 0,
 				"likes":        0,

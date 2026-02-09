@@ -66,7 +66,7 @@ func main() {
 	// Apply global middleware
 	router.Use(gin.Recovery())
 	router.Use(middleware.LoggerMiddleware())
-	router.Use(middleware.CORSMiddleware())
+	router.Use(middleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
 
 	// Initialize rate limiter (1000 requests per second, burst of 2000)
 	rateLimiter := middleware.NewRateLimiter(1000, 2000)
