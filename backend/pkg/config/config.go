@@ -46,7 +46,7 @@ type RedisConfig struct {
 
 // JWTConfig holds JWT configuration
 type JWTConfig struct {
-	SecretKey      string
+	SecretKey       string
 	ExpirationHours int
 }
 
@@ -78,7 +78,7 @@ func Load() (*Config, error) {
 			MinIdleConns: getEnvAsInt("REDIS_MIN_IDLE_CONNS", 10),
 		},
 		JWT: JWTConfig{
-			SecretKey:      getEnv("JWT_SECRET_KEY", "your-secret-key-change-in-production"),
+			SecretKey:       getEnv("JWT_SECRET_KEY", "your-secret-key-change-in-production"),
 			ExpirationHours: getEnvAsInt("JWT_EXPIRATION_HOURS", 24),
 		},
 	}

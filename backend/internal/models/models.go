@@ -19,17 +19,17 @@ type User struct {
 
 // Video represents video metadata
 type Video struct {
-	ID          int64     `json:"id" db:"id"`
-	UserID      int64     `json:"user_id" db:"user_id"`
-	Title       string    `json:"title" db:"title"`
-	Description string    `json:"description" db:"description"`
-	ThumbnailURL string   `json:"thumbnail_url" db:"thumbnail_url"`
-	StreamURL   string    `json:"stream_url" db:"stream_url"`
-	IsLive      bool      `json:"is_live" db:"is_live"`
-	IsAdultContent bool   `json:"is_adult_content" db:"is_adult_content"`
-	ViewCount   int64     `json:"view_count" db:"view_count"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	ID             int64     `json:"id" db:"id"`
+	UserID         int64     `json:"user_id" db:"user_id"`
+	Title          string    `json:"title" db:"title"`
+	Description    string    `json:"description" db:"description"`
+	ThumbnailURL   string    `json:"thumbnail_url" db:"thumbnail_url"`
+	StreamURL      string    `json:"stream_url" db:"stream_url"`
+	IsLive         bool      `json:"is_live" db:"is_live"`
+	IsAdultContent bool      `json:"is_adult_content" db:"is_adult_content"`
+	ViewCount      int64     `json:"view_count" db:"view_count"`
+	CreatedAt      time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // VideoWithEngagement extends Video with real-time engagement data

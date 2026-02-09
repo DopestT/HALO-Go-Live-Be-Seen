@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	ErrUserNotFound      = errors.New("user not found")
+	ErrUserNotFound       = errors.New("user not found")
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserExists        = errors.New("user already exists")
+	ErrUserExists         = errors.New("user already exists")
 )
 
 // Repository defines the interface for user data access
