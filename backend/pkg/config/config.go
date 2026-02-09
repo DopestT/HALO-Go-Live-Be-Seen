@@ -46,7 +46,6 @@ type RedisConfig struct {
 }
 
 // JWTConfig holds JWT configuration
-// JWTConfig holds JWT configuration
 type JWTConfig struct {
 	SecretKey       string
 	ExpirationHours int
