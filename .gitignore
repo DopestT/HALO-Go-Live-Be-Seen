@@ -18,3 +18,19 @@ dist/
 *.swo
 *~
 .tmp/
+
+# Go
+backend/api
+backend/*.exe
+backend/*.exe~
+backend/*.dll
+backend/*.so
+backend/*.dylib
+backend/*.test
+backend/*.out
+backend/vendor/
+backend/.env
+
+# Go coverage
+backend/coverage.txt
+backend/coverage.html
