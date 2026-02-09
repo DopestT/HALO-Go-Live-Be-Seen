@@ -140,6 +140,35 @@ npm run web
 - Extra Large: 20px
 - Round: 9999px
 
+## Project Roadmap
+
+HALO follows a **parallel-no-deps development model** with 12 independent tracks covering all aspects of the platform. See the comprehensive [Project Roadmap](./ROADMAP.md) for details.
+
+**Quick Stats:**
+- **50 total tasks** across 12 tracks
+- **1,464 estimated hours** of development
+- **16% complete** with 8 tasks finished
+
+### Roadmap Utilities
+
+```bash
+# Validate roadmap data integrity
+npm run roadmap:validate
+
+# View progress report
+npm run roadmap:progress
+
+# Generate markdown report
+npm run roadmap:progress:md
+
+# Generate JSON report
+npm run roadmap:progress:json
+```
+
+For detailed task breakdowns, priorities, and implementation status, see:
+- **[ROADMAP.md](./ROADMAP.md)** - Human-readable roadmap overview
+- **[PROJECT_ROADMAP.json](./PROJECT_ROADMAP.json)** - Structured roadmap data
+
 ## License
 
 MIT 

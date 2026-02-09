@@ -1,0 +1,533 @@
+{
+  "project": "HALO",
+  "tagline": "Go Live. Be Seen.",
+  "version": "1.0.0",
+  "model": "parallel-no-deps",
+  "description": "A comprehensive development roadmap for the HALO live streaming platform with parallel, independent tracks",
+  "tracks": [
+    {
+      "id": "brand",
+      "name": "Brand & Design System",
+      "description": "Visual identity, design tokens, and motion design for HALO's void-black aesthetic",
+      "priority": "critical",
+      "status": "in-progress",
+      "tasks": [
+        {
+          "id": "logo",
+          "name": "Logo Design",
+          "description": "Primary logo and wordmark with void-black aesthetic",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "icon",
+          "name": "App Icon",
+          "description": "iOS and Android app icons following platform guidelines",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 8
+        },
+        {
+          "id": "design_tokens",
+          "name": "Design Tokens",
+          "description": "Complete design system tokens (colors, spacing, typography, shadows)",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 24,
+          "implementation_file": "src/constants/theme.ts"
+        },
+        {
+          "id": "motion",
+          "name": "Motion Design",
+          "description": "Animation guidelines and micro-interactions",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        }
+      ]
+    },
+    {
+      "id": "ui",
+      "name": "User Interface",
+      "description": "Core UI screens and components following glassmorphism and low-density design principles",
+      "priority": "critical",
+      "status": "in-progress",
+      "tasks": [
+        {
+          "id": "home",
+          "name": "Home Screen",
+          "description": "Main landing screen with navigation and discovery feed preview",
+          "status": "in-progress",
+          "assignee": null,
+          "estimated_hours": 24,
+          "implementation_file": "src/screens/DiscoveryFeed.tsx"
+        },
+        {
+          "id": "live_viewer",
+          "name": "Live Stream Viewer",
+          "description": "Stream viewing interface with overlay controls and reporting",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 40,
+          "implementation_file": "src/components/LiveStreamOverlay.tsx"
+        },
+        {
+          "id": "live_creator",
+          "name": "Live Creator Studio",
+          "description": "Creator interface for managing live streams",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 48
+        },
+        {
+          "id": "go_live",
+          "name": "Go Live Flow",
+          "description": "Stream setup and configuration workflow",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        },
+        {
+          "id": "wallet",
+          "name": "Wallet Screen",
+          "description": "User wallet for coins and transaction history",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        },
+        {
+          "id": "profile",
+          "name": "Profile Screen",
+          "description": "User profile with settings and content",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        },
+        {
+          "id": "settings",
+          "name": "Settings Screen",
+          "description": "App settings including adult mode and preferences",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "safety",
+          "name": "Safety Center",
+          "description": "Safety tools, report management, and blocking",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        }
+      ]
+    },
+    {
+      "id": "psychology",
+      "name": "User Psychology & Ethics",
+      "description": "Anti-addiction features and ethical design patterns",
+      "priority": "high",
+      "status": "in-progress",
+      "tasks": [
+        {
+          "id": "calm_rules",
+          "name": "Calm Design Rules",
+          "description": "No urgency-based copy, no neon colors, no dark patterns",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 8,
+          "implementation_file": "README.md, .github/copilot-instructions.md"
+        },
+        {
+          "id": "anti_dark_patterns",
+          "name": "Anti-Dark Patterns",
+          "description": "Ethical UI patterns preventing manipulation",
+          "status": "in-progress",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "session_endings",
+          "name": "Graceful Session Endings",
+          "description": "Gentle prompts for taking breaks, no infinite scroll traps",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        }
+      ]
+    },
+    {
+      "id": "backend",
+      "name": "Backend Services",
+      "description": "Core API services for authentication, authorization, and moderation",
+      "priority": "critical",
+      "status": "in-progress",
+      "tasks": [
+        {
+          "id": "auth",
+          "name": "Authentication Service",
+          "description": "User registration, login, and JWT token management",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 32,
+          "implementation_file": "backend/internal/auth/"
+        },
+        {
+          "id": "roles",
+          "name": "Role-Based Access Control",
+          "description": "User roles and permissions system",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        },
+        {
+          "id": "age_gate",
+          "name": "Age Gating System",
+          "description": "Age verification and adult content access control",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 16,
+          "implementation_file": "src/utils/filterContentForUser.ts"
+        },
+        {
+          "id": "moderation",
+          "name": "Moderation API",
+          "description": "Content moderation and reporting backend",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 40
+        },
+        {
+          "id": "feature_flags",
+          "name": "Feature Flags",
+          "description": "Dynamic feature toggling system",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        }
+      ]
+    },
+    {
+      "id": "streaming",
+      "name": "Live Streaming Infrastructure",
+      "description": "Real-time streaming with LiveKit and host controls",
+      "priority": "critical",
+      "status": "not-started",
+      "tasks": [
+        {
+          "id": "rooms",
+          "name": "Room Management",
+          "description": "LiveKit room creation and management",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 40
+        },
+        {
+          "id": "tokens",
+          "name": "Access Tokens",
+          "description": "LiveKit token generation and validation",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "host_controls",
+          "name": "Host Controls",
+          "description": "Broadcaster controls for managing streams",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        },
+        {
+          "id": "moderation_hooks",
+          "name": "Moderation Webhooks",
+          "description": "Real-time moderation integration with streaming",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        }
+      ]
+    },
+    {
+      "id": "adult_mode",
+      "name": "Adult Mode System",
+      "description": "18+ content gating, verification, and compliance",
+      "priority": "critical",
+      "status": "in-progress",
+      "tasks": [
+        {
+          "id": "opt_in",
+          "name": "Adult Mode Opt-In",
+          "description": "User preference for adult content access",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 8,
+          "implementation_file": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "id": "verification",
+          "name": "Age Verification",
+          "description": "18+ age verification flow",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        },
+        {
+          "id": "audit_logs",
+          "name": "Audit Logging",
+          "description": "Comprehensive logs for adult content access",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "ui_modifier",
+          "name": "UI Content Filter",
+          "description": "Dynamic content filtering based on adult mode",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 16,
+          "implementation_file": "src/utils/filterContentForUser.ts"
+        }
+      ]
+    },
+    {
+      "id": "monetization",
+      "name": "Monetization & Payments",
+      "description": "Virtual currency, gifts, subscriptions, and creator payouts",
+      "priority": "high",
+      "status": "not-started",
+      "tasks": [
+        {
+          "id": "coins",
+          "name": "Virtual Currency",
+          "description": "Coin purchase and balance management",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        },
+        {
+          "id": "gifts",
+          "name": "Virtual Gifts",
+          "description": "Gift catalog and sending mechanics",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 40
+        },
+        {
+          "id": "subs",
+          "name": "Subscriptions",
+          "description": "Creator subscription tiers and benefits",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 48
+        },
+        {
+          "id": "ppv",
+          "name": "Pay-Per-View",
+          "description": "Paid private streams and exclusive content",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 40
+        },
+        {
+          "id": "payouts",
+          "name": "Creator Payouts",
+          "description": "Revenue distribution and payout processing",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 48
+        }
+      ]
+    },
+    {
+      "id": "safety",
+      "name": "Safety & Moderation",
+      "description": "User safety tools, reporting, and underage protection",
+      "priority": "critical",
+      "status": "in-progress",
+      "tasks": [
+        {
+          "id": "community_guidelines",
+          "name": "Community Guidelines",
+          "description": "Clear, enforceable community standards",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "reporting",
+          "name": "Report System",
+          "description": "One-tap reporting with categorization",
+          "status": "completed",
+          "assignee": null,
+          "estimated_hours": 24,
+          "implementation_file": "src/components/LiveStreamOverlay.tsx"
+        },
+        {
+          "id": "blocking",
+          "name": "Block & Mute",
+          "description": "User-level blocking and muting",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "underage_escalation",
+          "name": "Underage Protection",
+          "description": "Automated detection and escalation for minors",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        }
+      ]
+    },
+    {
+      "id": "web",
+      "name": "Web Presence",
+      "description": "Marketing website and policy pages",
+      "priority": "medium",
+      "status": "not-started",
+      "tasks": [
+        {
+          "id": "landing",
+          "name": "Landing Page",
+          "description": "Marketing website with void-black aesthetic",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 40
+        },
+        {
+          "id": "policy_pages",
+          "name": "Policy Pages",
+          "description": "Terms of Service, Privacy Policy, Community Guidelines",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        },
+        {
+          "id": "deep_links",
+          "name": "Deep Linking",
+          "description": "Universal links for app and web",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "name": "App Store Presence",
+      "description": "iOS App Store and Google Play Store optimization",
+      "priority": "high",
+      "status": "not-started",
+      "tasks": [
+        {
+          "id": "metadata",
+          "name": "Store Metadata",
+          "description": "App descriptions, keywords, and promotional text",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 16
+        },
+        {
+          "id": "screenshots",
+          "name": "Store Screenshots",
+          "description": "Marketing screenshots for both platforms",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        },
+        {
+          "id": "age_rating",
+          "name": "Age Rating",
+          "description": "Platform age rating submissions (17+ likely)",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 8
+        },
+        {
+          "id": "review_notes",
+          "name": "Review Guidelines",
+          "description": "Documentation for platform review teams",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 8
+        }
+      ]
+    },
+    {
+      "id": "qa",
+      "name": "Quality Assurance",
+      "description": "Comprehensive testing including edge cases and abuse scenarios",
+      "priority": "critical",
+      "status": "not-started",
+      "tasks": [
+        {
+          "id": "abuse_tests",
+          "name": "Abuse Testing",
+          "description": "Test platform resilience against abuse and gaming",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 40
+        },
+        {
+          "id": "adult_containment",
+          "name": "Adult Content Containment",
+          "description": "Verify adult content is properly gated",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 24
+        },
+        {
+          "id": "payment_edges",
+          "name": "Payment Edge Cases",
+          "description": "Test payment flows for edge cases and failures",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 32
+        }
+      ]
+    },
+    {
+      "id": "launch",
+      "name": "Launch Strategy",
+      "description": "Phased rollout with creator seeding and moderation staffing",
+      "priority": "high",
+      "status": "not-started",
+      "tasks": [
+        {
+          "id": "soft_launch",
+          "name": "Soft Launch",
+          "description": "Limited beta launch to gather feedback",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 80
+        },
+        {
+          "id": "creator_seeding",
+          "name": "Creator Program",
+          "description": "Recruit and onboard initial creators",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 80
+        },
+        {
+          "id": "moderation_staffing",
+          "name": "Moderation Team",
+          "description": "Hire and train moderation team",
+          "status": "not-started",
+          "assignee": null,
+          "estimated_hours": 120
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "created_at": "2026-02-09T21:49:27.897Z",
+    "updated_at": "2026-02-09T21:49:27.897Z",
+    "total_tracks": 12,
+    "total_tasks": 50,
+    "estimated_total_hours": 1464
+  }
+}
