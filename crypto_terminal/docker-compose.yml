@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  crypto-terminal:
+    build: .
+    container_name: crypto-terminal-dashboard
+    stdin_open: true  # Keep STDIN open (equivalent to -i)
+    tty: true         # Allocate a pseudo-TTY (equivalent to -t)
+    volumes:
+      # Mount the current directory to preserve trade logs
+      - ./:/app
+    environment:
+      - TERM=xterm-256color
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
