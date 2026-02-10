@@ -1,0 +1,5 @@
+
+🚀 Crypto Terminal Dashboard Starting...
+
+Press Ctrl+C to exit
+
