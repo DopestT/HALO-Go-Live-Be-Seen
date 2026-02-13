@@ -43,46 +43,79 @@
 
 ## Architecture
 
-### File Structure
+### Repository Structure
 ```
-src/
+HALO-Go-Live-Be-Seen/          # Monorepo root
+├── halo-app/                  # React Native mobile application
+│   ├── src/
+│   │   ├── components/        # Reusable UI (GlassPanel, HaloButton)
+│   │   ├── constants/         # Theme, Colors, Config
+│   │   ├── contexts/          # AuthContext, StreamContext
+│   │   ├── screens/           # Onboarding, Home, LiveRoom
+│   │   ├── navigation/        # RootStack, AppTabs
+│   │   └── utils/             # Safety checks, formatters
+│   ├── App.tsx                # Entry Point
+│   └── package.json           # Frontend dependencies
+├── backend/                   # Go backend services
+│   ├── cmd/                   # Application entry points
+│   ├── internal/              # Internal packages
+│   ├── pkg/                   # Public packages
+│   └── Makefile               # Build commands
+└── package.json               # Monorepo configuration
+```
+
+### Frontend File Structure (halo-app/)
+```
+halo-app/src/
 ├── components/
-│   └── LiveStreamOverlay.tsx     # Stream viewing with one-tap reporting
+│   ├── GlassPanel.tsx         # Glassmorphism UI container
+│   └── HaloButton.tsx         # Standard button component
 ├── contexts/
-│   └── AuthContext.tsx           # Authentication state management
+│   ├── AuthContext.tsx        # Authentication state management
+│   └── StreamContext.tsx      # Live streaming state
 ├── screens/
-│   ├── LoginScreen.tsx           # Glassmorphism login UI
-│   ├── DiscoveryFeed.tsx         # Low-density content feed
-│   └── LiveStreamDemo.tsx        # Demo screen for overlay
-├── utils/
-│   └── filterContentForUser.ts   # Adult Mode content gating
-└── theme.ts                      # Design system
+│   ├── OnboardingScreen.tsx   # Initial user onboarding
+│   ├── HomeScreen.tsx         # Main feed/discovery
+│   └── LiveRoomScreen.tsx     # Live stream viewing
+├── navigation/
+│   ├── RootStack.tsx          # Main navigation stack
+│   └── AppTabs.tsx            # Bottom tab navigation
+├── constants/
+│   └── theme.ts               # Design system
+└── utils/
+    ├── safety.ts              # Report and Block utilities
+    └── formatters.ts          # Data formatting helpers
 ```
 
 ### Key Features Implemented
 
-1. **Design System (theme.ts)**
+1. **Design System (halo-app/src/constants/theme.ts)**
    - Void Black color palette
    - Consistent spacing scale (4-48px)
    - Border radius values (8-20px)
    - Typography with tabular numbers
    - Glassmorphism settings
 
-2. **Authentication (AuthContext.tsx)**
+2. **Authentication (halo-app/src/contexts/AuthContext.tsx)**
    - User state management
    - Login/logout functionality
    - Adult Mode toggle
    - Age tracking
 
-3. **Content Filtering (filterContentForUser)**
-   - Adult content gating
-   - Age verification
-   - Safe defaults for unauthenticated users
+3. **Live Streaming (halo-app/src/contexts/StreamContext.tsx)**
+   - Stream state management
+   - LiveKit integration
+   - Room connection handling
 
-4. **UI Components**
-   - LoginScreen: Glassmorphism card with clean inputs
-   - DiscoveryFeed: Low-density feed layout
-   - LiveStreamOverlay: One-tap reporting system
+4. **UI Components (halo-app/src/components/)**
+   - GlassPanel: Glassmorphism container for all UI
+   - HaloButton: Standard button with calm styling
+   - Navigation: Stack and tab-based navigation
+
+5. **Safety Utilities (halo-app/src/utils/safety.ts)**
+   - Content reporting
+   - User blocking
+   - Age verification for adult content
 
 ## Testing
 
