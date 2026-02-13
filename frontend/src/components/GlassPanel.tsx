@@ -49,5 +49,3 @@ const styles = StyleSheet.create({
     borderColor: COLORS.overlay.medium,
   },
 });
-
-export default GlassPanel;

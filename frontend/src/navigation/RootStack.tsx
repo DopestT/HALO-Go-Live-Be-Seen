@@ -32,5 +32,3 @@ export const RootStack: React.FC = () => {
     </NavigationContainer>
   );
 };
-
-export default RootStack;

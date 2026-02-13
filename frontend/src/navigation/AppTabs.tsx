@@ -56,5 +56,3 @@ export const AppTabs: React.FC = () => {
     </Tab.Navigator>
   );
 };
-
-export default AppTabs;

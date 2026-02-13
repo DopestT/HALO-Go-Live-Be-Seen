@@ -50,7 +50,7 @@ HALO is a premium live streaming platform where authenticity meets artistry. Go 
 - Profile view
 - Settings/Safety features
 
-**iPhone 6.5" Display (1284 x 2778 px):**
+**iPhone 6.5" Display (1242 x 2688 px):**
 - Same set as 6.7" display
 
 ### App Preview Videos (Optional)

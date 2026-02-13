@@ -83,5 +83,3 @@ export const useStream = () => {
   }
   return context;
 };
-
-export default StreamContext;

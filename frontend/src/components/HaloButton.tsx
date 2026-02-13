@@ -84,5 +84,3 @@ const styles = StyleSheet.create({
     color: COLORS.slate,
   },
 });
-
-export default HaloButton;

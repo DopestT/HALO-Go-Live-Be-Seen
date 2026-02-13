@@ -138,5 +138,3 @@ const styles = StyleSheet.create({
     padding: THEME.spacing.lg,
   },
 });
-
-export default LiveRoomScreen;

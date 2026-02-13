@@ -163,5 +163,3 @@ const styles = StyleSheet.create({
     marginTop: THEME.spacing.xxl,
   },
 });
-
-export default HomeScreen;

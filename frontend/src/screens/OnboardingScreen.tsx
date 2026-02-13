@@ -73,5 +73,3 @@ const styles = StyleSheet.create({
     marginTop: THEME.spacing.md,
   },
 });
-
-export default OnboardingScreen;
