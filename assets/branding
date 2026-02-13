@@ -1,7 +1,0 @@
-import { Image } from 'react-native';
-
-// In your component:
-<Image 
-  source={require('../../assets/halo-ring.jpg')} 
-  style={{ width: 200, height: 100 }} 
-/>
