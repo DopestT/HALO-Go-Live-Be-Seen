@@ -2,50 +2,92 @@ name: Close All Pull Requests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - copilot/close-all-pull-requests
+    inputs:
+      confirmation:
+        description: 'Type "CLOSE_ALL" to confirm'
+        required: true
+        default: ''
 
 permissions:
   pull-requests: write
   contents: read
+  issues: write
 
 jobs:
   close-prs:
     runs-on: ubuntu-latest
+    if: github.event.inputs.confirmation == 'CLOSE_ALL'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Close all open pull requests
+      - name: List and close all open pull requests
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          echo "Fetching all open pull requests..."
+          echo "=== Closing All Open Pull Requests ==="
+          echo "Repository: $REPO"
+          echo ""
           
-          # Get all open PRs
-          prs=$(gh pr list --repo "$REPO" --state open --json number --jq '.[].number')
+          # Install jq if not available
+          which jq || sudo apt-get update && sudo apt-get install -y jq
           
-          if [ -z "$prs" ]; then
-            echo "No open pull requests found."
+          # List all open PRs first
+          echo "Fetching list of open pull requests..."
+          PR_DATA=$(gh api "/repos/$REPO/pulls?state=open&per_page=100" 2>&1 || echo "[]")
+          
+          if [ "$PR_DATA" = "[]" ] || [ -z "$PR_DATA" ]; then
+            echo "No open pull requests found or unable to fetch PRs."
+            echo "This might be due to permission issues."
+            exit 0
+          fi
+          
+          PR_NUMBERS=$(echo "$PR_DATA" | jq -r '.[].number' 2>/dev/null || echo "")
+          
+          if [ -z "$PR_NUMBERS" ]; then
+            echo "No PRs to close."
             exit 0
           fi
           
           echo "Found the following open PRs:"
-          echo "$prs"
+          echo "$PR_NUMBERS" | while read pr; do
+            title=$(echo "$PR_DATA" | jq -r ".[] | select(.number==$pr) | .title")
+            echo "  - PR #$pr: $title"
+          done
+          echo ""
           
           # Close each PR
-          for pr in $prs; do
-            # Skip the current PR if we're running from a PR
-            current_pr="${{ github.event.pull_request.number }}"
-            if [ "$pr" = "$current_pr" ]; then
-              echo "Skipping current PR #$pr"
+          echo "Starting to close PRs..."
+          for pr in $PR_NUMBERS; do
+            # Skip PR #22 (current working PR)
+            if [ "$pr" = "22" ]; then
+              echo "Skipping PR #$pr (current working PR)"
               continue
             fi
             
             echo "Closing PR #$pr..."
-            gh pr close "$pr" --repo "$REPO" --comment "Closing all pull requests as requested." || echo "Failed to close PR #$pr"
+            
+            # Try to close using gh API
+            result=$(gh api \
+              --method PATCH \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/$REPO/pulls/$pr" \
+              -f state='closed' 2>&1 || echo "FAILED")
+            
+            if echo "$result" | grep -q "FAILED"; then
+              echo "  ✗ Failed to close PR #$pr"
+            else
+              echo "  ✓ Successfully closed PR #$pr"
+              
+              # Add a comment
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                "/repos/$REPO/issues/$pr/comments" \
+                -f body='Closing all pull requests as requested.' 2>/dev/null || echo "  (Could not add comment)"
+            fi
           done
           
-          echo "All pull requests have been processed."
+          echo ""
+          echo "=== Process Complete ==="
