@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       adultModeEnabled: false,
       age: 25,
     };
-    await signIn(mockUser);
+    signIn(mockUser);
   };
 
   const logout = () => {

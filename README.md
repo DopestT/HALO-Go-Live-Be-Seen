@@ -119,7 +119,7 @@ npx tsc --noEmit
 
 ## 🔑 Environment Variables
 
-Required environment variables (see `.env.example`):
+Required environment variables (see `.env.example` for complete list):
 
 - `LIVEKIT_API_KEY` - LiveKit API key for video streaming
 - `LIVEKIT_API_SECRET` - LiveKit API secret
