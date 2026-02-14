@@ -30,7 +30,7 @@
     "@testing-library/react-native": "^12.3.2",
     "@testing-library/jest-native": "^5.4.3"
   },
-  "private": true
+  "private": true,
   "name": "halo-app",
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
