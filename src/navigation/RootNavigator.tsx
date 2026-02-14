@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { PALETTE } from '../constants/theme';
 
 // Auth Screens
-import AgeGateScreen from '../screens/auth/AgeGateScreen';
+import AgeGateScreen from '../screens/with/AgeGateScreen';
 // import LoginScreen from '../screens/auth/LoginScreen'; // (Next step)
 
 // App Screens
