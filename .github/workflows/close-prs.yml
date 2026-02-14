@@ -1,0 +1,51 @@
+name: Close All Pull Requests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - copilot/close-all-pull-requests
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  close-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Close all open pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Fetching all open pull requests..."
+          
+          # Get all open PRs
+          prs=$(gh pr list --repo "$REPO" --state open --json number --jq '.[].number')
+          
+          if [ -z "$prs" ]; then
+            echo "No open pull requests found."
+            exit 0
+          fi
+          
+          echo "Found the following open PRs:"
+          echo "$prs"
+          
+          # Close each PR
+          for pr in $prs; do
+            # Skip the current PR if we're running from a PR
+            current_pr="${{ github.event.pull_request.number }}"
+            if [ "$pr" = "$current_pr" ]; then
+              echo "Skipping current PR #$pr"
+              continue
+            fi
+            
+            echo "Closing PR #$pr..."
+            gh pr close "$pr" --repo "$REPO" --comment "Closing all pull requests as requested." || echo "Failed to close PR #$pr"
+          done
+          
+          echo "All pull requests have been processed."
