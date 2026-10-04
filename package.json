@@ -1,14 +1,17 @@
 {
-  "name": "halo-go-live-be-seen",
+  "name": "halo-independent-live-network",
   "version": "1.0.0",
-  "description": "HALO is a social networking platform",
+  "description": "HALO is an independent live-video network for creators, communities, and public-interest broadcasting.",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "test:ci": "jest --runInBand",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run test:ci && npm run typecheck"
   },
   "dependencies": {
     "@react-navigation/native": "^6.1.9",
