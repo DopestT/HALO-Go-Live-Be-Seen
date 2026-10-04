@@ -22,7 +22,7 @@ func (s *fakeStore) UpsertReference(_ context.Context, ref Reference) (bool, err
 	if s.upsertFailures != nil {
 		return false, s.upsertFailures
 	}
-	key := ref.CreatorChannelID.String() + ":" + ref.Provider + ":" + ref.ExternalUserID
+	key := string(ref.CreatorChannelID) + ":" + ref.Provider + ":" + ref.ExternalUserID
 	if _, exists := s.refs[key]; exists {
 		return false, nil
 	}
