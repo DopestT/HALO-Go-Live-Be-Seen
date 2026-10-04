@@ -30,6 +30,7 @@ jobs:
           npm config set legacy-peer-deps true
           npm install
           npx expo install --fix
+          npx expo install jest-expo jest @types/jest --dev
           npm audit fix || true
 
       - name: Verify deprecated client packages are gone
@@ -42,6 +43,7 @@ jobs:
             echo 'Deprecated @types/react-native is still installed.' >&2
             exit 1
           fi
+          npm ls jest-expo --depth=0
 
       - name: Commit generated dependency graph
         run: |
@@ -52,5 +54,5 @@ jobs:
             echo "No dependency changes generated."
             exit 0
           fi
-          git commit -m "chore: refresh client dependencies for Expo 57"
+          git commit -m "chore: install SDK 57 Jest toolchain"
           git push origin HEAD:feature/hardened-media-pipeline
