@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   node-audit:
-    name: Node dependency audit
+    name: Node dependency and supply-chain audit
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -26,8 +26,30 @@ jobs:
           cache: npm
       - name: Install exact dependencies
         run: npm ci --legacy-peer-deps
-      - name: Audit high and critical vulnerabilities
-        run: npm audit --audit-level=high
+      - name: Enforce exact high/critical advisory policy
+        run: node scripts/security-audit-policy.mjs
+      - name: Reject unexpected lockfile package sources
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const bad = [];
+          for (const [path, pkg] of Object.entries(lock.packages ?? {})) {
+            const resolved = pkg?.resolved;
+            if (!resolved) continue;
+            if (!resolved.startsWith('https://registry.npmjs.org/')) {
+              bad.push(`${path || '<root>'}: ${resolved}`);
+            }
+          }
+          if (bad.length) {
+            console.error('Unexpected package sources in package-lock.json:');
+            for (const entry of bad) console.error(`- ${entry}`);
+            process.exit(1);
+          }
+          console.log('All resolved npm package sources use the npm registry over HTTPS.');
+          NODE
+      - name: Verify npm registry signatures and provenance
+        run: npm audit signatures
 
   go-security:
     name: Go race and vulnerability checks
@@ -56,16 +78,11 @@ jobs:
       - name: Go vulnerability scan
         run: govulncheck ./...
 
-  dependency-review:
-    name: Pull request dependency review
-    if: github.event_name == 'pull_request'
+  repository-security-capability:
+    name: Repository security capability record
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - name: Review dependency changes
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
-        with:
-          fail-on-severity: high
+      - name: Record dependency-review limitation
+        run: |
+          echo 'GitHub Dependency Review cannot execute until this repository has Dependency Graph enabled.'
+          echo 'This workflow therefore enforces full npm audit policy, lockfile source restrictions, npm registry signature/provenance verification, Go module verification, govulncheck, and race detection directly.'
