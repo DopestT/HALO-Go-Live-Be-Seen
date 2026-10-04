@@ -51,9 +51,10 @@ func TestViewerCannotBanAndDeniedAttemptIsAudited(t *testing.T) {
 	service := NewService(store, audit, controller)
 
 	err := service.Apply(context.Background(), Actor{
-		UserID: 77,
-		Scope:  ScopeChannel,
-		Role:   RoleViewer,
+		UserID:    77,
+		Scope:     ScopeChannel,
+		Role:      RoleViewer,
+		ChannelID: platform.HALOID("channel-1"),
 	}, Request{
 		Action:       ActionBan,
 		ChannelID:    platform.HALOID("channel-1"),
@@ -75,7 +76,7 @@ func TestChannelModeratorCanTimeoutButCannotSuspendChannel(t *testing.T) {
 	store := &fakeStore{}
 	audit := &fakeAudit{}
 	service := NewService(store, audit, &fakeController{})
-	actor := Actor{UserID: 12, Scope: ScopeChannel, Role: RoleModerator}
+	actor := Actor{UserID: 12, Scope: ScopeChannel, Role: RoleModerator, ChannelID: platform.HALOID("channel-1")}
 
 	if err := service.Apply(context.Background(), actor, Request{
 		Action:       ActionTimeout,
@@ -99,6 +100,33 @@ func TestChannelModeratorCanTimeoutButCannotSuspendChannel(t *testing.T) {
 	})
 	if !errors.Is(err, ErrForbidden) {
 		t.Fatalf("suspend Apply() error = %v, want ErrForbidden", err)
+	}
+}
+
+func TestChannelModeratorCannotModerateAnotherChannel(t *testing.T) {
+	store := &fakeStore{}
+	audit := &fakeAudit{}
+	service := NewService(store, audit, &fakeController{})
+
+	err := service.Apply(context.Background(), Actor{
+		UserID:    12,
+		Scope:     ScopeChannel,
+		Role:      RoleModerator,
+		ChannelID: platform.HALOID("channel-1"),
+	}, Request{
+		Action:       ActionBan,
+		ChannelID:    platform.HALOID("channel-2"),
+		TargetUserID: 88,
+		ReasonCode:   "spam",
+	})
+	if !errors.Is(err, ErrForbidden) {
+		t.Fatalf("cross-channel Apply() error = %v, want ErrForbidden", err)
+	}
+	if len(store.atomicWrites) != 0 {
+		t.Fatal("cross-channel moderation mutated moderation state")
+	}
+	if len(audit.events) != 1 || audit.events[0].Outcome != OutcomeDenied {
+		t.Fatalf("cross-channel denial audit = %+v", audit.events)
 	}
 }
 
@@ -130,9 +158,10 @@ func TestEmergencyStopRequiresAuditIntentBeforeProviderSideEffect(t *testing.T) 
 	service := NewService(store, audit, controller)
 
 	err := service.Apply(context.Background(), Actor{
-		UserID: 12,
-		Scope:  ScopeChannel,
-		Role:   RoleModerator,
+		UserID:    12,
+		Scope:     ScopeChannel,
+		Role:      RoleModerator,
+		ChannelID: platform.HALOID("channel-1"),
 	}, Request{
 		Action:      ActionEndStream,
 		ChannelID:   platform.HALOID("channel-1"),
@@ -153,9 +182,10 @@ func TestEmergencyStopProviderFailureIsAuditedAsFailed(t *testing.T) {
 	service := NewService(&fakeStore{}, audit, controller)
 
 	err := service.Apply(context.Background(), Actor{
-		UserID: 12,
-		Scope:  ScopeChannel,
-		Role:   RoleModerator,
+		UserID:    12,
+		Scope:     ScopeChannel,
+		Role:      RoleModerator,
+		ChannelID: platform.HALOID("channel-1"),
 	}, Request{
 		Action:      ActionEndStream,
 		ChannelID:   platform.HALOID("channel-1"),
