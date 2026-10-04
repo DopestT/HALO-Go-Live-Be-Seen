@@ -1,35 +1,26 @@
-# Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.27.1-alpine3.24 AS builder
 
-WORKDIR /app
+WORKDIR /src
+RUN apk add --no-cache git ca-certificates
 
-# Install dependencies
-RUN apk add --no-cache git
-
-# Copy go mod files
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -trimpath \
+    -ldflags="-s -w" \
+    -o /out/halo-api ./cmd/api
 
-# Build the application with optimizations for production
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo \
-    -ldflags="-w -s" \
-    -o /app/api ./cmd/api
+FROM alpine:3.24.1 AS runtime
 
-# Runtime stage
-FROM alpine:latest
+RUN apk add --no-cache ca-certificates \
+    && addgroup -S halo \
+    && adduser -S -G halo -H -h /nonexistent halo
 
-RUN apk --no-cache add ca-certificates
+WORKDIR /app
+COPY --from=builder --chown=halo:halo /out/halo-api /app/halo-api
 
-WORKDIR /root/
-
-# Copy the binary from builder
-COPY --from=builder /app/api .
-
-# Expose port
+USER halo:halo
 EXPOSE 8080
-
-# Run the application
-CMD ["./api"]
+ENTRYPOINT ["/app/halo-api"]
