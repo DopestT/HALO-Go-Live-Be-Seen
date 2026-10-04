@@ -95,13 +95,9 @@ jobs:
           INSERT INTO users (id, email, username, password_hash, display_name)
           VALUES (1, 'ci@example.test', 'ci-user', 'not-a-real-password-hash', 'CI User');
 
-          INSERT INTO channels (id, slug, display_name, owner_user_id, created_by_user_id)
-          SELECT '00000000-0000-0000-0000-000000000001', 'ci-channel', 'CI Channel', 1, 1
-          WHERE FALSE;
+          INSERT INTO channels (id, slug, display_name, owner_user_id)
+          VALUES ('00000000-0000-0000-0000-000000000001', 'ci-channel', 'CI Channel', 1);
           SQL
-
-          # channels has no created_by_user_id; create the canonical channel with its actual schema.
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO channels (id, slug, display_name, owner_user_id) VALUES ('00000000-0000-0000-0000-000000000001','ci-channel','CI Channel',1);"
 
           # An approved source without authorization evidence must be rejected.
           if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO media_sources (id,channel_id,name,authorization_status,created_by_user_id) VALUES ('00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000001','Bad approved source','approved',1);"; then
