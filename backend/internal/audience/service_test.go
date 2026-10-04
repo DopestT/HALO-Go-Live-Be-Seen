@@ -14,6 +14,7 @@ type fakeStore struct {
 	follows        []Follow
 	matching       []Reference
 	upsertFailures error
+	acceptFailure  error
 }
 
 func newFakeStore() *fakeStore { return &fakeStore{refs: map[string]Reference{}} }
@@ -34,12 +35,11 @@ func (s *fakeStore) MatchingReferences(context.Context, string, string) ([]Refer
 	return append([]Reference(nil), s.matching...), nil
 }
 
-func (s *fakeStore) SaveClaim(_ context.Context, claim Claim) error {
+func (s *fakeStore) AcceptClaim(_ context.Context, claim Claim, follow Follow) error {
+	if s.acceptFailure != nil {
+		return s.acceptFailure
+	}
 	s.claims = append(s.claims, claim)
-	return nil
-}
-
-func (s *fakeStore) CreateFollow(_ context.Context, follow Follow) error {
 	s.follows = append(s.follows, follow)
 	return nil
 }
@@ -122,7 +122,7 @@ func TestAcceptClaimRequiresExplicitFollowConsent(t *testing.T) {
 	}
 }
 
-func TestAcceptClaimWithConsentPersistsClaimAndFollow(t *testing.T) {
+func TestAcceptClaimWithConsentPersistsClaimAndFollowAtomically(t *testing.T) {
 	store := newFakeStore()
 	service := NewService(store)
 	suggestion := ClaimSuggestion{
@@ -144,5 +144,27 @@ func TestAcceptClaimWithConsentPersistsClaimAndFollow(t *testing.T) {
 	}
 	if store.follows[0].ChannelID != platform.HALOID("channel-9") || store.follows[0].UserID != 42 {
 		t.Fatalf("follow = %+v", store.follows[0])
+	}
+}
+
+func TestAcceptClaimStoreFailureLeavesNoPartialState(t *testing.T) {
+	store := newFakeStore()
+	store.acceptFailure = errors.New("transaction failed")
+	service := NewService(store)
+
+	err := service.AcceptClaim(context.Background(), ClaimConsent{
+		HALOUserID: 42,
+		Suggestion: ClaimSuggestion{
+			ReferenceID:      platform.HALOID("audref-1"),
+			CreatorChannelID: platform.HALOID("channel-9"),
+			RelationshipType: "follower",
+		},
+		Follow: true,
+	})
+	if err == nil {
+		t.Fatal("AcceptClaim() succeeded despite atomic-store failure")
+	}
+	if len(store.claims) != 0 || len(store.follows) != 0 {
+		t.Fatal("failed atomic accept left partial claim/follow state")
 	}
 }
