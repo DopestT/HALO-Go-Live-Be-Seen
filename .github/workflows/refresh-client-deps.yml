@@ -1,0 +1,52 @@
+name: Refresh HALO client dependencies
+
+on:
+  push:
+    branches:
+      - feature/hardened-media-pipeline
+    paths:
+      - .github/workflows/refresh-client-deps.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/hardened-media-pipeline
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.13.1
+          cache: npm
+
+      - name: Upgrade Expo and navigation
+        run: |
+          npm install --save --legacy-peer-deps \
+            expo@^57.0.0 \
+            @react-navigation/native@^7.5.0 \
+            @react-navigation/stack@^7.12.0
+          npx expo install --fix
+
+      - name: Remove deprecated matcher package
+        run: npm uninstall --save-dev @testing-library/jest-native --legacy-peer-deps
+
+      - name: Apply non-breaking vulnerability remediations
+        run: npm audit fix --legacy-peer-deps || true
+
+      - name: Commit generated dependency graph
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency changes generated."
+            exit 0
+          fi
+          git commit -m "chore: refresh client dependencies for Expo 57"
+          git push origin HEAD:feature/hardened-media-pipeline
