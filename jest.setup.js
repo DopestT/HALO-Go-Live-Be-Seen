@@ -1,2 +1,2 @@
-// Jest setup file
-import '@testing-library/jest-native/extend-expect';
+// Jest setup file.
+// React Native Testing Library provides its supported matchers directly.
