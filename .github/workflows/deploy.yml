@@ -1,28 +1,45 @@
 name: HALO Production Build
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build:
+  verify-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - name: 🛡️ Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: ⚙️ Setup Expo
-        uses: expo/expo-github-action@v8
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install exact dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Verify client before production build
+        run: npm run verify
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e
         with:
           expo-version: latest
           eas-cache: true
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 📦 Install Dependencies
-        run: |
-          npm install
-          npm install -g eas-cli
-
-      - name: 🚀 Build App (EAS)
-        run: eas build --platform all --non-interactive
+      - name: Build app with pinned EAS CLI
+        run: npx --yes eas-cli@24.8.0 build --platform all --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
