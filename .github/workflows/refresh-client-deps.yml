@@ -25,19 +25,23 @@ jobs:
           node-version: 22.13.1
           cache: npm
 
-      - name: Upgrade Expo and navigation
+      - name: Resolve Expo 57 dependency graph
         run: |
-          npm install --save --legacy-peer-deps \
-            expo@^57.0.0 \
-            @react-navigation/native@^7.5.0 \
-            @react-navigation/stack@^7.12.0
+          npm config set legacy-peer-deps true
+          npm install
           npx expo install --fix
+          npm audit fix || true
 
-      - name: Remove deprecated matcher package
-        run: npm uninstall --save-dev @testing-library/jest-native --legacy-peer-deps
-
-      - name: Apply non-breaking vulnerability remediations
-        run: npm audit fix --legacy-peer-deps || true
+      - name: Verify deprecated client packages are gone
+        run: |
+          if npm ls @testing-library/jest-native --all 2>/dev/null | grep -q '@testing-library/jest-native'; then
+            echo 'Deprecated @testing-library/jest-native is still installed.' >&2
+            exit 1
+          fi
+          if npm ls @types/react-native --all 2>/dev/null | grep -q '@types/react-native'; then
+            echo 'Deprecated @types/react-native is still installed.' >&2
+            exit 1
+          fi
 
       - name: Commit generated dependency graph
         run: |
