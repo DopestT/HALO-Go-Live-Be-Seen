@@ -9,7 +9,7 @@ require (
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/redis/go-redis/v9 v9.17.3
 	golang.org/x/crypto v0.48.0
-	golang.org/x/time v0.14.0
+	golang.org/x/time v0.16.0
 )
 
 require (
