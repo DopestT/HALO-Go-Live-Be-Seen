@@ -1,0 +1,48 @@
+name: Refresh LiveKit SDK
+
+on:
+  push:
+    branches:
+      - feature/livekit-provider
+    paths:
+      - '.github/workflows/refresh-livekit-sdk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/livekit-provider
+
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: backend/go.sum
+
+      - name: Add current LiveKit server SDK
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          go get github.com/livekit/server-sdk-go/v2@latest
+          go mod tidy
+          go test ./...
+
+      - name: Commit dependency graph
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- backend/go.mod backend/go.sum; then
+            echo 'No LiveKit dependency changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend/go.mod backend/go.sum
+          git commit -m 'build: add current LiveKit server SDK'
+          git push origin HEAD:feature/livekit-provider
