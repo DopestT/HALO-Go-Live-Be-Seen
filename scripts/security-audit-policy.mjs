@@ -46,62 +46,54 @@ try {
 
 const vulnerabilities = report.vulnerabilities ?? {};
 const now = Date.now();
-const advisoryCache = new Map();
+const advisories = new Map();
 
-function directAdvisories(name, seen = new Set()) {
-  if (advisoryCache.has(name)) return advisoryCache.get(name);
-  if (seen.has(name)) return [];
-  seen.add(name);
-
-  const vuln = vulnerabilities[name];
-  if (!vuln) return [];
-
-  const found = [];
+// npm assigns an aggregate severity to packages that depend on vulnerable
+// packages. That aggregate is not itself a separate advisory. Evaluate the
+// concrete advisory objects instead so dependency cycles and transitive package
+// severity cannot manufacture false high/critical findings.
+for (const [packageName, vuln] of Object.entries(vulnerabilities)) {
   for (const via of vuln.via ?? []) {
-    if (typeof via === 'string') {
-      found.push(...directAdvisories(via, new Set(seen)));
-      continue;
-    }
-    if (via && typeof via === 'object') {
-      found.push(via);
+    if (!via || typeof via !== 'object') continue;
+    const severity = String(via.severity ?? '').toLowerCase();
+    if (!['high', 'critical'].includes(severity)) continue;
+
+    const key = via.url ?? `${packageName}:${via.source ?? via.title ?? via.range ?? 'unknown'}`;
+    if (!advisories.has(key)) {
+      advisories.set(key, {
+        packageName,
+        severity,
+        url: via.url,
+        title: via.title,
+        range: via.range,
+      });
     }
   }
-  advisoryCache.set(name, found);
-  return found;
 }
 
 const blocked = [];
 const waived = new Map();
 
-for (const [name, vuln] of Object.entries(vulnerabilities)) {
-  if (!['high', 'critical'].includes(vuln.severity)) continue;
-
-  const advisories = directAdvisories(name);
-  if (advisories.length === 0) {
-    blocked.push(`${name}: ${vuln.severity} finding has no resolvable advisory root`);
+for (const [key, advisory] of advisories) {
+  const exception = advisory.url ? allowed.get(advisory.url) : undefined;
+  if (!exception) {
+    blocked.push(
+      `${advisory.packageName}: ${advisory.severity} ${advisory.url ?? advisory.title ?? advisory.range ?? key}`,
+    );
     continue;
   }
 
-  for (const advisory of advisories) {
-    const url = advisory.url;
-    const exception = allowed.get(url);
-    if (!exception) {
-      blocked.push(`${name}: ${advisory.severity ?? vuln.severity} ${url ?? advisory.title ?? 'unknown advisory'}`);
-      continue;
-    }
-
-    const expiry = Date.parse(exception.expires);
-    if (!Number.isFinite(expiry) || now >= expiry) {
-      blocked.push(`${name}: temporary exception expired for ${url}`);
-      continue;
-    }
-
-    waived.set(url, exception);
+  const expiry = Date.parse(exception.expires);
+  if (!Number.isFinite(expiry) || now >= expiry) {
+    blocked.push(`${advisory.packageName}: temporary exception expired for ${advisory.url}`);
+    continue;
   }
+
+  waived.set(advisory.url, exception);
 }
 
 if (blocked.length > 0) {
-  console.error('Unapproved high/critical npm audit findings:');
+  console.error('Unapproved high/critical npm audit advisories:');
   for (const finding of [...new Set(blocked)].sort()) console.error(`- ${finding}`);
   process.exit(1);
 }
@@ -116,5 +108,5 @@ if (waived.size > 0) {
 
 const metadata = report.metadata?.vulnerabilities ?? {};
 console.log(
-  `npm audit policy passed: critical=${metadata.critical ?? 0}, high=${metadata.high ?? 0}, moderate=${metadata.moderate ?? 0}.`,
+  `npm advisory policy passed: direct high/critical advisories=${advisories.size}; aggregate package counts critical=${metadata.critical ?? 0}, high=${metadata.high ?? 0}, moderate=${metadata.moderate ?? 0}.`,
 );
