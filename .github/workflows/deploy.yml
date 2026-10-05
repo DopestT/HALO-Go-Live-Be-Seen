@@ -15,7 +15,7 @@ concurrency:
 jobs:
   verify-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -35,14 +35,24 @@ jobs:
       - name: Enforce dependency security policy before production build
         run: node scripts/security-audit-policy.mjs
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e
-        with:
-          expo-version: latest
-          eas-cache: true
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Build app with pinned EAS CLI
-        run: npx --yes eas-cli@24.8.0 build --platform all --non-interactive
+      - name: Require Expo CI authentication
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "::error::EXPO_TOKEN is not configured for this repository. Add a scoped Expo access token before production builds can run."
+            exit 1
+          fi
+
+      - name: Validate EAS production configuration
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx --yes eas-cli@24.8.0 config --platform ios --profile production --non-interactive >/dev/null
+          npx --yes eas-cli@24.8.0 config --platform android --profile production --non-interactive >/dev/null
+
+      - name: Build production apps with pinned EAS CLI
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx --yes eas-cli@24.8.0 build --platform all --profile production --non-interactive --wait
