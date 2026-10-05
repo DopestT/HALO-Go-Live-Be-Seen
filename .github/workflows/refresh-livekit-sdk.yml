@@ -6,6 +6,8 @@ on:
       - feature/livekit-provider
     paths:
       - '.github/workflows/refresh-livekit-sdk.yml'
+      - 'backend/internal/streaming/livekit/token.go'
+      - 'backend/internal/streaming/livekit/sdk_client.go'
 
 permissions:
   contents: write
@@ -26,7 +28,7 @@ jobs:
           go-version: '1.27.1'
           cache-dependency-path: backend/go.sum
 
-      - name: Add current LiveKit server SDK
+      - name: Resolve LiveKit dependency graph
         working-directory: backend
         run: |
           set -euo pipefail
@@ -44,5 +46,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add backend/go.mod backend/go.sum
-          git commit -m 'build: add current LiveKit server SDK'
+          git commit -m 'build: refresh LiveKit dependency graph'
           git push origin HEAD:feature/livekit-provider
