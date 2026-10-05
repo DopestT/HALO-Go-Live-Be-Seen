@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
+          node-version: '22.13.1'
           cache: npm
 
       - name: Install exact dependencies
@@ -31,6 +31,9 @@ jobs:
 
       - name: Verify client before production build
         run: npm run verify
+
+      - name: Enforce dependency security policy before production build
+        run: node scripts/security-audit-policy.mjs
 
       - name: Setup Expo
         uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e

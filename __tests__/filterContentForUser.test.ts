@@ -40,13 +40,13 @@ describe('filterContentForUser', () => {
     expect(result[0].id).toBe('1');
   });
 
-  it('should show adult content when adult mode is enabled and age is verified', () => {
+  it('should show standard adult content when adult mode is enabled and age is verified', () => {
     const user: User = {
       id: '1',
       username: 'testuser',
       email: 'test@example.com',
       adultModeEnabled: true,
-      age: 25,
+      age: 20,
     };
     const result = filterContentForUser(mockContent, user);
     expect(result).toHaveLength(2);

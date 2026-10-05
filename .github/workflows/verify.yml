@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
+          node-version: '22.13.1'
           cache: npm
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -52,3 +52,74 @@ jobs:
         run: go vet ./...
       - name: Build API
         run: go build ./cmd/api
+
+  migrations:
+    name: Postgres migration and constraint verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: halo
+          POSTGRES_PASSWORD: halo-ci-password
+          POSTGRES_DB: halo_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U halo -d halo_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGPASSWORD: halo-ci-password
+      DATABASE_URL: postgresql://halo:halo-ci-password@127.0.0.1:5432/halo_ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Apply migrations from a clean database
+        run: |
+          set -euo pipefail
+          for migration in backend/migrations/*.sql; do
+            echo "Applying ${migration}"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - name: Verify hardened media constraints fail closed
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO users (id, email, username, password_hash, display_name)
+          VALUES (1, 'ci@example.test', 'ci-user', 'not-a-real-password-hash', 'CI User');
+
+          INSERT INTO channels (id, slug, display_name, owner_user_id)
+          VALUES ('00000000-0000-0000-0000-000000000001', 'ci-channel', 'CI Channel', 1);
+          SQL
+
+          # An approved source without authorization evidence must be rejected.
+          if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO media_sources (id,channel_id,name,authorization_status,created_by_user_id) VALUES ('00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000001','Bad approved source','approved',1);"; then
+            echo 'media_sources accepted approved state without authorized_at' >&2
+            exit 1
+          fi
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO media_sources (id,channel_id,name,authorization_status,created_by_user_id,authorization_actor_user_id,authorization_reason,authorized_at) VALUES ('00000000-0000-0000-0000-000000000011','00000000-0000-0000-0000-000000000001','Approved creator CDN','approved',1,1,'ci approval',CURRENT_TIMESTAMP);"
+
+          # IP literals cannot enter the source allowlist.
+          if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO media_source_allowed_hosts (source_id,hostname,created_by_user_id) VALUES ('00000000-0000-0000-0000-000000000011','127.0.0.1',1);"; then
+            echo 'media_source_allowed_hosts accepted an IP literal' >&2
+            exit 1
+          fi
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO media_source_allowed_hosts (source_id,hostname,created_by_user_id) VALUES ('00000000-0000-0000-0000-000000000011','media.example.com',1);"
+
+          # Rights evidence is mandatory at the durable boundary.
+          if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO external_media_assets (id,source_id,external_id,media_url,rights_reference) VALUES ('00000000-0000-0000-0000-000000000020','00000000-0000-0000-0000-000000000011','ext-1','https://media.example.com/video.mp4','');"; then
+            echo 'external_media_assets accepted empty rights evidence' >&2
+            exit 1
+          fi
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO external_media_assets (id,source_id,external_id,media_url,rights_reference) VALUES ('00000000-0000-0000-0000-000000000021','00000000-0000-0000-0000-000000000011','ext-2','https://media.example.com/video.mp4','license:ci');"
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM external_media_assets WHERE review_status='pending';")" = "1"

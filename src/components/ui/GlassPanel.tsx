@@ -1,26 +1,20 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { PALETTE, LAYOUT } from '../../constants/theme';
 
 interface GlassPanelProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   intensity?: number;
 }
 
-export const GlassPanel: React.FC<GlassPanelProps> = ({ 
-  children, 
-  style, 
-  intensity = 20 
+export const GlassPanel: React.FC<GlassPanelProps> = ({
+  children,
+  style,
 }) => {
   return (
     <View style={[styles.container, style]}>
-      <BlurView intensity={intensity} tint="dark" style={styles.blur}>
-        <View style={styles.content}>
-          {children}
-        </View>
-      </BlurView>
+      <View style={styles.content}>{children}</View>
     </View>
   );
 };
@@ -33,13 +27,8 @@ const styles = StyleSheet.create({
     borderColor: PALETTE.glassBorder,
     borderWidth: 1,
   },
-  blur: {
-    padding: LAYOUT.spacing,
+  content: {
     width: '100%',
     height: '100%',
   },
-  content: {
-    // Ensure content sits clearly on top of the blur
-    zIndex: 1, 
-  }
 });

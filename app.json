@@ -3,7 +3,7 @@
     "name": "HALO",
     "slug": "halo-go-live-be-seen",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {

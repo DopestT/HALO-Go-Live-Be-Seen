@@ -5,10 +5,31 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "jsx": "react-native",
     "lib": ["esnext"],
-    "target": "esnext"
-  }
+    "target": "esnext",
+    "types": ["jest"]
+  },
+  "include": [
+    "App.tsx",
+    "__tests__/**/*.ts",
+    "src/contexts/**/*.tsx",
+    "src/screens/DiscoveryFeed.tsx",
+    "src/screens/LoginScreen.tsx",
+    "src/screens/stream/**/*.tsx",
+    "src/components/ui/**/*.tsx",
+    "src/constants/**/*.ts",
+    "src/theme.ts",
+    "src/utils/**/*.ts"
+  ],
+  "exclude": [
+    "halo-app/**",
+    "src/api/**",
+    "src/navigation/**",
+    "src/screens/main/**",
+    "src/screens/with/**",
+    "src/ui/**"
+  ]
 }

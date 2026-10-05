@@ -7,6 +7,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { theme } from '../theme';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,13 +18,15 @@ export const LoginScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 900;
 
   const handleLogin = async () => {
     if (!email || !password) {
       setError('Please enter both email and password');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
     try {
@@ -40,52 +43,55 @@ export const LoginScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
-        {/* Logo/Title */}
-        <View style={styles.headerContainer}>
+      <View style={[styles.content, isWide && styles.contentWide]}>
+        <View style={[styles.hero, isWide && styles.heroWide]}>
+          <Text style={styles.eyebrow}>INDEPENDENT LIVE NETWORK</Text>
           <Text style={styles.title}>HALO</Text>
           <Text style={styles.subtitle}>Go Live. Be Seen.</Text>
+          <Text style={styles.heroCopy}>
+            Live video built around creators, communities, and public-interest broadcasting.
+          </Text>
         </View>
 
-        {/* Glassmorphism Card */}
-        <View style={styles.glassCard}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            placeholderTextColor={theme.colors.textTertiary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+        <View style={[styles.authColumn, isWide && styles.authColumnWide]}>
+          <View style={styles.glassCard}>
+            <Text style={styles.cardTitle}>Sign in</Text>
+            <Text style={styles.cardSubtitle}>Enter HALO and pick up where you left off.</Text>
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your password"
-            placeholderTextColor={theme.colors.textTertiary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              placeholderTextColor={theme.colors.textTertiary}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
 
-          {error ? (
-            <Text style={styles.errorText}>{error}</Text>
-          ) : null}
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              placeholderTextColor={theme.colors.textTertiary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
 
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            <Text style={styles.buttonText}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </Text>
-          </TouchableOpacity>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>{isLoading ? 'Signing in...' : 'Sign in'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -95,37 +101,85 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
     backgroundColor: theme.colors.voidBlack,
   },
   content: {
     flex: 1,
+    width: '100%',
+    paddingHorizontal: 24,
+    paddingVertical: 32,
     justifyContent: 'center',
-    paddingHorizontal: theme.spacing.lg,
   },
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.xxl,
+  contentWide: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    paddingHorizontal: 48,
+    paddingVertical: 48,
+  },
+  hero: {
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  heroWide: {
+    flex: 1.35,
+    marginBottom: 0,
+    paddingRight: 64,
+  },
+  eyebrow: {
+    fontSize: theme.typography.fontSize.xs,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textSecondary,
+    letterSpacing: 2.5,
+    marginBottom: 18,
   },
   title: {
-    fontSize: theme.typography.fontSize.xxxl,
+    fontSize: 64,
+    lineHeight: 68,
     fontWeight: theme.typography.fontWeight.bold,
     color: theme.colors.textPrimary,
-    letterSpacing: 2,
-    fontVariant: ['tabular-nums'],
+    letterSpacing: 4,
   },
   subtitle: {
-    fontSize: theme.typography.fontSize.md,
+    fontSize: 28,
+    lineHeight: 34,
     color: theme.colors.textSecondary,
-    marginTop: theme.spacing.sm,
-    fontVariant: ['tabular-nums'],
+    marginTop: 8,
+  },
+  heroCopy: {
+    maxWidth: 720,
+    marginTop: 24,
+    fontSize: theme.typography.fontSize.lg,
+    lineHeight: 28,
+    color: theme.colors.textTertiary,
+  },
+  authColumn: {
+    width: '100%',
+    justifyContent: 'center',
+  },
+  authColumnWide: {
+    flex: 0.75,
+    maxWidth: 560,
   },
   glassCard: {
+    width: '100%',
     backgroundColor: theme.colors.glassBackground,
     borderRadius: theme.borderRadius.large,
     borderWidth: 1,
     borderColor: theme.colors.glassBorder,
-    padding: theme.spacing.xl,
+    padding: 30,
     ...theme.shadows.medium,
+  },
+  cardTitle: {
+    fontSize: theme.typography.fontSize.xxl,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
+  },
+  cardSubtitle: {
+    marginTop: 8,
+    marginBottom: 16,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textTertiary,
   },
   label: {
     fontSize: theme.typography.fontSize.sm,
@@ -133,7 +187,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.md,
-    fontVariant: ['tabular-nums'],
   },
   input: {
     backgroundColor: theme.colors.darkGray,
@@ -143,7 +196,6 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textPrimary,
-    fontVariant: ['tabular-nums'],
   },
   button: {
     backgroundColor: theme.colors.lightGray,
@@ -160,12 +212,10 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.md,
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.textPrimary,
-    fontVariant: ['tabular-nums'],
   },
   errorText: {
     fontSize: theme.typography.fontSize.sm,
     color: theme.colors.error,
     marginTop: theme.spacing.md,
-    fontVariant: ['tabular-nums'],
   },
 });
