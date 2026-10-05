@@ -19,20 +19,16 @@ import (
 )
 
 func main() {
-	// Initialize logger
 	logger.Init()
 	logger.InfoLogger.Println("Starting HALO API Gateway...")
 
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		logger.ErrorLogger.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Set Gin to release mode for production
 	gin.SetMode(gin.ReleaseMode)
 
-	// Initialize database connections
 	db, err := database.NewPostgresDB(&cfg.Database)
 	if err != nil {
 		logger.ErrorLogger.Fatalf("Failed to connect to PostgreSQL: %v", err)
@@ -45,37 +41,29 @@ func main() {
 	}
 	defer redisClient.Close()
 
-	// Initialize repositories
 	authRepo := auth.NewPostgresRepository(db.DB)
 	videoRepo := video.NewPostgresRepository(db.DB)
 
-	// Initialize services
 	authService := auth.NewService(authRepo)
 	videoService := video.NewService(videoRepo, redisClient)
 
-	// Initialize JWT manager
 	jwtManager := auth.NewJWTManager(cfg.JWT.SecretKey, cfg.JWT.ExpirationHours)
 
-	// Initialize handlers
 	authHandler := auth.NewHandler(authService, jwtManager)
 	videoHandler := video.NewHandler(videoService)
 
-	// Initialize Gin router
 	router := gin.New()
-
-	// Apply global middleware
 	router.Use(gin.Recovery())
 	router.Use(middleware.LoggerMiddleware())
 	router.Use(middleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
 
-	// Initialize rate limiter (1000 requests per second, burst of 2000)
-	rateLimiter := middleware.NewRateLimiter(1000, 2000)
+	// Rate limits are configuration-backed and validated before the server starts.
+	// This avoids a permissive hard-coded production default.
+	rateLimiter := middleware.NewRateLimiter(cfg.Server.RateLimitRPS, cfg.Server.RateLimitBurst)
 	rateLimiter.CleanupOldLimiters()
 	router.Use(middleware.RateLimitMiddleware(rateLimiter))
 
-	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
-		// Check database health
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
@@ -97,53 +85,44 @@ func main() {
 		})
 	})
 
-	// API v1 routes
 	v1 := router.Group("/api/v1")
 	{
-		// Public auth routes
 		authRoutes := v1.Group("/auth")
 		{
 			authRoutes.POST("/register", authHandler.Register)
 			authRoutes.POST("/login", authHandler.Login)
 		}
 
-		// Protected auth routes
 		authProtected := v1.Group("/auth")
 		authProtected.Use(middleware.AuthMiddleware(jwtManager))
 		{
 			authProtected.GET("/me", authHandler.GetProfile)
 		}
 
-		// Video routes (some protected, some public)
 		videoRoutes := v1.Group("/videos")
 		{
 			videoRoutes.GET("", videoHandler.GetVideos)
 			videoRoutes.GET("/:id", videoHandler.GetVideo)
 		}
 
-		// Protected video routes
 		videoProtected := v1.Group("/videos")
 		videoProtected.Use(middleware.AuthMiddleware(jwtManager))
 		{
 			videoProtected.POST("/:id/engagement/:metric", videoHandler.IncrementEngagement)
 		}
 
-		// User video routes
 		v1.GET("/users/:user_id/videos", videoHandler.GetUserVideos)
 	}
 
-	// Create HTTP server with timeouts optimized for high concurrency
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),
-		Handler:      router,
-		ReadTimeout:  time.Duration(cfg.Server.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(cfg.Server.WriteTimeout) * time.Second,
-		IdleTimeout:  time.Duration(cfg.Server.IdleTimeout) * time.Second,
-		// Optimize for high concurrency
-		MaxHeaderBytes: 1 << 20, // 1 MB
+		Addr:           fmt.Sprintf(":%s", cfg.Server.Port),
+		Handler:        router,
+		ReadTimeout:    time.Duration(cfg.Server.ReadTimeout) * time.Second,
+		WriteTimeout:   time.Duration(cfg.Server.WriteTimeout) * time.Second,
+		IdleTimeout:    time.Duration(cfg.Server.IdleTimeout) * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 
-	// Start server in a goroutine
 	go func() {
 		logger.InfoLogger.Printf("Server listening on port %s", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -151,14 +130,12 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	logger.InfoLogger.Println("Shutting down server...")
 
-	// Give outstanding requests 5 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
