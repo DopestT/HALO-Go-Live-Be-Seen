@@ -1,14 +1,14 @@
-# HALO — Independent Live Network
+# Tube — Independent Live Network
 
-HALO is a standalone, Twitch-like live-video network for creators, organizers, labor groups, campus groups, independent journalists, campaigns, educators, community broadcasters, and other public-interest creators.
+Tube is a standalone live-video network for creators, organizers, labor groups, campus groups, independent journalists, campaigns, educators, community broadcasters, and other public-interest creators.
 
-The product is being repurposed from the earlier HALO direction. Existing streaming, backend, moderation, payments, and infrastructure work is retained where it serves the new architecture; unrelated legacy assumptions are not canonical.
+Tube is being repurposed from the earlier HALO direction. Existing streaming, backend, moderation, payments, and infrastructure work is retained where it serves the new architecture; unrelated legacy assumptions are not canonical.
 
 ## Product principles
 
-- **Independent platform state:** HALO owns accounts, channels, broadcasts, moderation records, subscriptions, audience-import state, recordings, analytics, and audit history.
+- **Independent platform state:** Tube owns accounts, channels, broadcasts, moderation records, subscriptions, audience-import state, recordings, analytics, and audit history.
 - **Replaceable providers:** LiveKit is the first streaming engine, but provider-specific identifiers remain behind internal adapters.
-- **Audience portability:** creators can connect supported external platforms and bring authorized audience relationships into HALO as external references without silently creating accounts for third parties.
+- **Audience portability:** creators can connect supported external platforms and bring authorized audience relationships into Tube as external references without silently creating accounts for third parties.
 - **Transparent discovery:** recommendations and paid promotion must have an understandable reason and paid ranking must be labeled.
 - **No advertising-maximization core:** subscriptions, direct support, organization plans, events, and optional services are preferred over behavioral advertising.
 - **No hidden ideological gate:** early creator acquisition may focus on progressive/public-interest communities, while access and moderation remain governed by published rules and safety standards.
@@ -19,7 +19,7 @@ The product is being repurposed from the earlier HALO direction. Existing stream
 Clients (Web / iOS / Android)
         |
         v
-HALO API + Realtime Layer
+Tube API + Realtime Layer
   |- Identity / Channels / Organizations
   |- Broadcast orchestration
   |- Audience portability
