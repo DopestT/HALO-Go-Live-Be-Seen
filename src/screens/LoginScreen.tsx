@@ -46,7 +46,7 @@ export const LoginScreen: React.FC = () => {
       <View style={[styles.content, isWide && styles.contentWide]}>
         <View style={[styles.hero, isWide && styles.heroWide]}>
           <Text style={styles.eyebrow}>INDEPENDENT LIVE NETWORK</Text>
-          <Text style={styles.title}>HALO</Text>
+          <Text style={styles.title}>Tube</Text>
           <Text style={styles.subtitle}>Go Live. Be Seen.</Text>
           <Text style={styles.heroCopy}>
             Live video built around creators, communities, and public-interest broadcasting.
@@ -56,7 +56,7 @@ export const LoginScreen: React.FC = () => {
         <View style={[styles.authColumn, isWide && styles.authColumnWide]}>
           <View style={styles.glassCard}>
             <Text style={styles.cardTitle}>Sign in</Text>
-            <Text style={styles.cardSubtitle}>Enter HALO and pick up where you left off.</Text>
+            <Text style={styles.cardSubtitle}>Enter Tube and pick up where you left off.</Text>
 
             <Text style={styles.label}>Email</Text>
             <TextInput

@@ -43,7 +43,7 @@ const AppContent: React.FC = () => {
       {!isLive && (
         <View style={styles.nav}>
           <TouchableOpacity style={styles.brandButton} onPress={() => openSection('discover')}>
-            <Text style={styles.brand}>HALO</Text>
+            <Text style={styles.brand}>Tube</Text>
           </TouchableOpacity>
 
           <View style={styles.navActions}>
