@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { PublicSection } from '../product';
 import { theme } from '../theme';
 
-type PublicLane = Exclude<PublicSection, 'live' | 'uploads'>;
+type PublicLane = Exclude<PublicSection, 'live' | 'uploads' | 'creators'>;
 
 const laneContent: Record<PublicLane, { label: string; headline: string; copy: string }> = {
   clips: {
@@ -15,11 +15,6 @@ const laneContent: Record<PublicLane, { label: string; headline: string; copy: s
     label: 'SHOWS',
     headline: 'Programming with a place to live.',
     copy: 'Series and episodic programming will appear here when the verified shows feed is connected.',
-  },
-  creators: {
-    label: 'CREATORS',
-    headline: 'Find the people behind the signal.',
-    copy: 'Creator discovery will appear here when verified creator profiles are connected.',
   },
   communities: {
     label: 'COMMUNITIES',

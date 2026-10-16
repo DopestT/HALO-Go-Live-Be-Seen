@@ -14,6 +14,8 @@ import { LoginScreen } from './src/screens/LoginScreen';
 import { DiscoveryFeed } from './src/screens/DiscoveryFeed';
 import { UploadsScreen } from './src/screens/UploadsScreen';
 import { WatchScreen } from './src/screens/WatchScreen';
+import { CreatorsScreen } from './src/screens/CreatorsScreen';
+import { CreatorProfileScreen } from './src/screens/CreatorProfileScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { PublicLaneScreen } from './src/screens/PublicLaneScreen';
 import GoLiveFlow from './src/screens/stream/GoLiveFlow';
@@ -71,10 +73,12 @@ const AppContent: React.FC = () => {
   };
 
   const openVideo = (videoId: number) => openRoute({ kind: 'watch', id: videoId });
+  const openCreator = (creatorId: number) => openRoute({ kind: 'creator', id: creatorId });
 
   const publicContent = (publicSection: PublicSection) => {
     if (publicSection === 'live') return <DiscoveryFeed onOpen={openVideo} />;
     if (publicSection === 'uploads') return <UploadsScreen onOpen={openVideo} />;
+    if (publicSection === 'creators') return <CreatorsScreen onOpen={openCreator} />;
     return <PublicLaneScreen section={publicSection} />;
   };
 
@@ -82,12 +86,7 @@ const AppContent: React.FC = () => {
   if (route.kind === 'watch') {
     content = <WatchScreen id={route.id} />;
   } else if (route.kind === 'creator') {
-    content = (
-      <RoutePendingScreen
-        title="CREATOR"
-        message="Loading this creator route is being connected to verified public creator data."
-      />
-    );
+    content = <CreatorProfileScreen id={route.id} onOpenVideo={openVideo} />;
   } else if (route.kind === 'not-found') {
     content = (
       <RoutePendingScreen

@@ -4,7 +4,6 @@ import { PublicLaneScreen } from '../src/screens/PublicLaneScreen';
 const cases = [
   ['clips', 'CLIPS', 'Short clips will appear here when the verified clips feed is connected.'],
   ['shows', 'SHOWS', 'Series and episodic programming will appear here when the verified shows feed is connected.'],
-  ['creators', 'CREATORS', 'Creator discovery will appear here when verified creator profiles are connected.'],
   ['communities', 'COMMUNITIES', 'Community spaces will appear here when verified community data is connected.'],
 ] as const;
 
