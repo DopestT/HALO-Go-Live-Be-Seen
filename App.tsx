@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { DiscoveryFeed } from './src/screens/DiscoveryFeed';
 import { UploadsScreen } from './src/screens/UploadsScreen';
+import { WatchScreen } from './src/screens/WatchScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { PublicLaneScreen } from './src/screens/PublicLaneScreen';
 import GoLiveFlow from './src/screens/stream/GoLiveFlow';
@@ -79,12 +80,7 @@ const AppContent: React.FC = () => {
 
   let content: React.ReactNode;
   if (route.kind === 'watch') {
-    content = (
-      <RoutePendingScreen
-        title="WATCH"
-        message="Loading this NSCENE video route is being connected to verified media data."
-      />
-    );
+    content = <WatchScreen id={route.id} />;
   } else if (route.kind === 'creator') {
     content = (
       <RoutePendingScreen
