@@ -9,7 +9,7 @@ import (
 func setBaseTestEnv(t *testing.T) {
 	t.Helper()
 	keys := []string{
-		"APP_ENV", "DB_PASSWORD", "DB_SSL_MODE", "DB_SSL_ROOT_CERT",
+		"APP_ENV", "DB_HOST", "DB_PASSWORD", "DB_SSL_MODE", "DB_SSL_ROOT_CERT",
 		"JWT_SECRET_KEY", "CORS_ALLOWED_ORIGINS", "RATE_LIMIT_RPS", "RATE_LIMIT_BURST",
 	}
 	for _, key := range keys {
@@ -76,6 +76,30 @@ func TestProductionRequiresVerifyFullDatabaseTLS(t *testing.T) {
 
 	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "DB_SSL_MODE") {
 		t.Fatalf("Load() error = %v; want database TLS rejection", err)
+	}
+}
+
+func TestProductionAllowsRequireTLSForRailwayPrivateDatabase(t *testing.T) {
+	setBaseTestEnv(t)
+	_ = os.Setenv("APP_ENV", "production")
+	_ = os.Setenv("DB_HOST", "postgres.railway.internal")
+	_ = os.Setenv("DB_SSL_MODE", "require")
+	_ = os.Setenv("CORS_ALLOWED_ORIGINS", "https://nscene.live")
+
+	if _, err := Load(); err != nil {
+		t.Fatalf("Load() error = %v; want Railway private database with sslmode=require accepted", err)
+	}
+}
+
+func TestProductionRejectsRequireTLSForNonRailwayDatabase(t *testing.T) {
+	setBaseTestEnv(t)
+	_ = os.Setenv("APP_ENV", "production")
+	_ = os.Setenv("DB_HOST", "db.example.com")
+	_ = os.Setenv("DB_SSL_MODE", "require")
+	_ = os.Setenv("CORS_ALLOWED_ORIGINS", "https://nscene.live")
+
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "DB_SSL_MODE") {
+		t.Fatalf("Load() error = %v; want non-Railway database to require verify-full", err)
 	}
 }
 
