@@ -16,7 +16,10 @@ SQL
 for migration in "$MIGRATIONS_DIR"/*.sql; do
     [ -f "$migration" ] || continue
     version=$(basename "$migration")
-    applied=$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v version="$version" -Atqc "SELECT 1 FROM schema_migrations WHERE version = :'version'")
+    applied=$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -v version="$version" -At <<'SQL'
+SELECT 1 FROM schema_migrations WHERE version = :'version';
+SQL
+)
 
     if [ "$applied" = "1" ]; then
         echo "Skipping already applied migration: $version"
