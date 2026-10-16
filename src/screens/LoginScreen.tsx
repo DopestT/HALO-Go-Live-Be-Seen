@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { theme } from '../theme';
 import { useAuth } from '../contexts/AuthContext';
+import { productIdentity } from '../product';
 
 export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -45,18 +46,19 @@ export const LoginScreen: React.FC = () => {
     >
       <View style={[styles.content, isWide && styles.contentWide]}>
         <View style={[styles.hero, isWide && styles.heroWide]}>
-          <Text style={styles.eyebrow}>INDEPENDENT LIVE NETWORK</Text>
-          <Text style={styles.title}>Tube</Text>
-          <Text style={styles.subtitle}>Go Live. Be Seen.</Text>
+          <Text style={styles.eyebrow}>INDEPENDENT VIDEO NETWORK</Text>
+          <Text style={styles.title}>{productIdentity.name}</Text>
+          <Text style={styles.subtitle}>{productIdentity.tagline}</Text>
           <Text style={styles.heroCopy}>
-            Live video built around creators, communities, and public-interest broadcasting.
+            Live streams, uploads, clips, shows, creators, and communities in one network built around people instead of manipulation.
           </Text>
+          <Text style={styles.motto}>{productIdentity.motto}</Text>
         </View>
 
         <View style={[styles.authColumn, isWide && styles.authColumnWide]}>
           <View style={styles.glassCard}>
             <Text style={styles.cardTitle}>Sign in</Text>
-            <Text style={styles.cardSubtitle}>Enter Tube and pick up where you left off.</Text>
+            <Text style={styles.cardSubtitle}>Sign in to {productIdentity.name} and pick up where you left off.</Text>
 
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -152,6 +154,13 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.lg,
     lineHeight: 28,
     color: theme.colors.textTertiary,
+  },
+  motto: {
+    marginTop: 20,
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    letterSpacing: 0.5,
   },
   authColumn: {
     width: '100%',
