@@ -1,6 +1,6 @@
 module github.com/DopestT/HALO-Go-Live-Be-Seen/backend
 
-go 1.27.1
+go 1.27.2
 
 require (
 	github.com/gin-contrib/cors v1.7.6
@@ -8,7 +8,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/redis/go-redis/v9 v9.17.3
-	golang.org/x/crypto v0.48.0
+	golang.org/x/crypto v0.57.0
 	golang.org/x/time v0.14.0
 )
 
@@ -42,9 +42,9 @@ require (
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/arch v0.24.0 // indirect
-	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.39.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
