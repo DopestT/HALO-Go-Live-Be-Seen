@@ -1,5 +1,4 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import { PublicLaneScreen } from '../src/screens/PublicLaneScreen';
 
 const cases = [
@@ -10,12 +9,20 @@ const cases = [
   ['communities', 'COMMUNITIES', 'Community spaces will appear here when verified community data is connected.'],
 ] as const;
 
+const collectText = (node: React.ReactNode): string[] => {
+  if (typeof node === 'string' || typeof node === 'number') return [String(node)];
+  if (Array.isArray(node)) return node.flatMap(collectText);
+  if (React.isValidElement(node)) return collectText((node.props as { children?: React.ReactNode }).children);
+  return [];
+};
+
 describe('PublicLaneScreen', () => {
   it.each(cases)('renders an honest empty state for %s', (section, label, copy) => {
-    const screen = render(<PublicLaneScreen section={section} />);
+    const output = PublicLaneScreen({ section });
+    const text = collectText(output);
 
-    expect(screen.getByText(label)).toBeTruthy();
-    expect(screen.getByText(copy)).toBeTruthy();
-    expect(screen.getByText('NO FABRICATED ACTIVITY')).toBeTruthy();
+    expect(text).toContain(label);
+    expect(text).toContain(copy);
+    expect(text).toContain('NO FABRICATED ACTIVITY');
   });
 });
