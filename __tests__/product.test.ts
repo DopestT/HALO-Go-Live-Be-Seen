@@ -1,12 +1,14 @@
 import { isPublicSection, productIdentity, publicSections } from '../src/product';
+import { theme } from '../src/theme';
 
 describe('NSCENE product contract', () => {
-  it('uses the approved public identity copy', () => {
+  it('uses the approved public identity and domains', () => {
     expect(productIdentity).toEqual({
       name: 'NSCENE',
       tagline: 'See It. Share It. Live It.',
       motto: 'Built to amplify, not manipulate.',
-      domain: 'nscene.watch',
+      domain: 'nscene.live',
+      secondaryDomain: 'nscene.watch',
     });
   });
 
@@ -42,5 +44,15 @@ describe('NSCENE product contract', () => {
     expect(isPublicSection('studio')).toBe(false);
     expect(isPublicSection('account')).toBe(false);
     expect(isPublicSection('anything-else')).toBe(false);
+  });
+
+  it('uses the approved NSCENE semantic colors', () => {
+    expect(theme.colors.base).toBe('#070A0F');
+    expect(theme.colors.elevated).toBe('#0D1117');
+    expect(theme.colors.card).toBe('#151B23');
+    expect(theme.colors.textPrimary).toBe('#F8FAFC');
+    expect(theme.colors.signalBlue).toBe('#6D8CFF');
+    expect(theme.colors.liveRed).toBe('#FF4D5A');
+    expect(theme.colors.success).toBe('#42D392');
   });
 });
