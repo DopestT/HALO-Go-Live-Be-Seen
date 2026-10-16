@@ -1,5 +1,6 @@
 import {
   accountActionsFor,
+  initialAppPath,
   initialAppSection,
   primaryNavigation,
   resolveRequestedSection,
@@ -8,6 +9,7 @@ import {
 describe('NSCENE app shell', () => {
   it('opens on public Live browsing even when signed out', () => {
     expect(initialAppSection).toBe('live');
+    expect(initialAppPath).toBe('/live');
     expect(resolveRequestedSection('live', false)).toBe('live');
     expect(resolveRequestedSection('uploads', false)).toBe('uploads');
   });
@@ -24,9 +26,7 @@ describe('NSCENE app shell', () => {
   });
 
   it('offers Sign in but not Studio or Account when signed out', () => {
-    expect(accountActionsFor(false)).toEqual([
-      { id: 'signin', label: 'SIGN IN' },
-    ]);
+    expect(accountActionsFor(false)).toEqual([{ id: 'signin', label: 'SIGN IN' }]);
     expect(resolveRequestedSection('studio', false)).toBe('live');
     expect(resolveRequestedSection('account', false)).toBe('live');
   });
