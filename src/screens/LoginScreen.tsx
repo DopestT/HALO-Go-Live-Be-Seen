@@ -33,7 +33,7 @@ export const LoginScreen: React.FC = () => {
     try {
       await login(email, password);
     } catch (err) {
-      setError('Unable to sign in. Please check your credentials.');
+      setError(err instanceof Error ? err.message : 'Unable to sign in. Please try again.');
     } finally {
       setIsLoading(false);
     }
