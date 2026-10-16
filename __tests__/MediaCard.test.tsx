@@ -19,13 +19,13 @@ const video: VideoWithEngagement = {
   comment_count: 3,
 };
 
-const collectText = (node: React.ReactNode): string[] => {
-  if (typeof node === 'string' || typeof node === 'number') return [String(node)];
-  if (Array.isArray(node)) return node.flatMap(collectText);
+const collectText = (node: React.ReactNode): string => {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(collectText).join('');
   if (React.isValidElement(node)) {
     return collectText((node.props as { children?: React.ReactNode }).children);
   }
-  return [];
+  return '';
 };
 
 describe('MediaCard', () => {
@@ -40,8 +40,8 @@ describe('MediaCard', () => {
     expect(text).toContain('14 watching');
     expect(text).toContain('9 likes');
     expect(text).toContain('3 comments');
-    expect(text.some((value) => /followers/i.test(value))).toBe(false);
-    expect(text.some((value) => /verified creator/i.test(value))).toBe(false);
+    expect(text).not.toMatch(/followers/i);
+    expect(text).not.toMatch(/verified creator/i);
   });
 
   it('does not label uploaded video as live and opens the returned video id', () => {
