@@ -1,5 +1,11 @@
 import type { User } from '../contexts/AuthContext';
 
+declare const process: {
+  env: {
+    EXPO_PUBLIC_API_BASE_URL?: string;
+  };
+};
+
 interface BackendUser {
   id: number;
   email: string;
@@ -23,9 +29,7 @@ export interface LoginResult {
   isAdultVerified: boolean;
 }
 
-const defaultApiBaseUrl = typeof process !== 'undefined'
-  ? process.env.EXPO_PUBLIC_API_BASE_URL ?? ''
-  : '';
+const defaultApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
 const normalizeApiBaseUrl = (value: string) => value.trim().replace(/\/+$/, '');
 
