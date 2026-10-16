@@ -2,7 +2,6 @@ import React from 'react';
 import { PublicLaneScreen } from '../src/screens/PublicLaneScreen';
 
 const cases = [
-  ['uploads', 'UPLOADS', 'Long-form and uploaded video will appear here when the verified media feed is connected.'],
   ['clips', 'CLIPS', 'Short clips will appear here when the verified clips feed is connected.'],
   ['shows', 'SHOWS', 'Series and episodic programming will appear here when the verified shows feed is connected.'],
   ['creators', 'CREATORS', 'Creator discovery will appear here when verified creator profiles are connected.'],

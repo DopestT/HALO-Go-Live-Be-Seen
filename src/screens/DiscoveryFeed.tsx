@@ -1,111 +1,114 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { listVideos, PublicApiError } from '../api/publicClient';
+import type { VideoWithEngagement } from '../api/types';
+import { AsyncState } from '../components/media/AsyncState';
+import { MediaGrid } from '../components/media/MediaGrid';
 import { productIdentity } from '../product';
 import { theme } from '../theme';
 
-export const DiscoveryFeed: React.FC = () => (
-  <View style={styles.container}>
-    <View style={styles.hero}>
-      <Text style={styles.eyebrow}>{productIdentity.name} LIVE</Text>
-      <Text style={styles.title}>{productIdentity.tagline}</Text>
-      <Text style={styles.copy}>
-        Live discovery belongs here. This preview will show real broadcasts only after the verified discovery feed is connected.
-      </Text>
-      <Text style={styles.motto}>{productIdentity.motto}</Text>
-    </View>
+export type LaneStatus = 'loading' | 'ready' | 'empty' | 'unavailable' | 'error';
+export type VideoLoader = typeof listVideos;
 
-    <View style={styles.signalPanel}>
-      <View style={styles.signalDot} />
-      <View style={styles.signalCopy}>
-        <Text style={styles.signalLabel}>NO VERIFIED LIVE SIGNALS YET</Text>
-        <Text style={styles.signalDetail}>
-          Mock creators, viewer counts, and fake live sessions have been removed from the public surface.
+export const laneStatusFromError = (error: unknown): LaneStatus =>
+  error instanceof PublicApiError && (error.code === 'not_configured' || error.code === 'unavailable')
+    ? 'unavailable'
+    : 'error';
+
+export const loadLiveVideos = (loader: VideoLoader = listVideos) => loader({ live: true });
+
+export const DiscoveryFeedView = ({
+  status,
+  videos,
+  onOpen,
+}: {
+  status: LaneStatus;
+  videos: VideoWithEngagement[];
+  onOpen: (videoId: number) => void;
+}) => {
+  if (status !== 'ready') {
+    return <AsyncState state={status} />;
+  }
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.hero}>
+        <Text style={styles.eyebrow}>{productIdentity.name} LIVE</Text>
+        <Text style={styles.title}>Live now, from the source.</Text>
+        <Text style={styles.copy}>
+          Every card below comes from the connected NSCENE video API. LIVE labels and counts reflect returned backend state only.
         </Text>
       </View>
-    </View>
-  </View>
-);
+      <MediaGrid videos={videos} onOpen={onOpen} />
+    </ScrollView>
+  );
+};
+
+export const DiscoveryFeed: React.FC<{ onOpen: (videoId: number) => void }> = ({ onOpen }) => {
+  const [status, setStatus] = useState<LaneStatus>('loading');
+  const [videos, setVideos] = useState<VideoWithEngagement[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    setStatus('loading');
+    loadLiveVideos()
+      .then((records) => {
+        if (!active) return;
+        setVideos(records);
+        setStatus(records.length === 0 ? 'empty' : 'ready');
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setVideos([]);
+        setStatus(laneStatusFromError(error));
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return <DiscoveryFeedView status={status} videos={videos} onOpen={onOpen} />;
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    backgroundColor: theme.colors.voidBlack,
+    backgroundColor: theme.colors.base,
+  },
+  content: {
+    width: '100%',
+    maxWidth: 1240,
+    alignSelf: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 56,
+    paddingTop: 48,
+    paddingBottom: 72,
+    gap: 28,
   },
   hero: {
     width: '100%',
-    maxWidth: 1180,
-    alignSelf: 'center',
-    paddingTop: 72,
-    paddingBottom: 54,
+    paddingBottom: 28,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderGray,
+    borderBottomColor: theme.colors.glassBorder,
   },
   eyebrow: {
-    color: theme.colors.textSecondary,
+    color: theme.colors.liveRed,
     fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 2.4,
-    marginBottom: 18,
+    fontWeight: '800',
+    letterSpacing: 2.2,
+    marginBottom: 12,
   },
   title: {
-    maxWidth: 940,
     color: theme.colors.textPrimary,
-    fontSize: 56,
-    lineHeight: 62,
+    fontSize: 38,
+    lineHeight: 44,
     fontWeight: '800',
-    letterSpacing: -1.4,
   },
   copy: {
     maxWidth: 760,
-    marginTop: 22,
+    marginTop: 14,
     color: theme.colors.textSecondary,
-    fontSize: 17,
-    lineHeight: 27,
-  },
-  motto: {
-    marginTop: 24,
-    color: theme.colors.textTertiary,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  signalPanel: {
-    width: '100%',
-    maxWidth: 1180,
-    alignSelf: 'center',
-    marginTop: 28,
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: theme.colors.borderGray,
-    borderRadius: 16,
-    backgroundColor: theme.colors.deepGray,
-  },
-  signalDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginTop: 4,
-    marginRight: 14,
-    backgroundColor: theme.colors.textTertiary,
-  },
-  signalCopy: {
-    flex: 1,
-  },
-  signalLabel: {
-    color: theme.colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-  },
-  signalDetail: {
-    marginTop: 8,
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 23,
   },
 });

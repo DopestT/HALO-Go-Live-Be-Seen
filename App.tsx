@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { DiscoveryFeed } from './src/screens/DiscoveryFeed';
+import { UploadsScreen } from './src/screens/UploadsScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { PublicLaneScreen } from './src/screens/PublicLaneScreen';
 import GoLiveFlow from './src/screens/stream/GoLiveFlow';
@@ -68,11 +69,13 @@ const AppContent: React.FC = () => {
     );
   };
 
-  const publicContent = (publicSection: PublicSection) => (
-    publicSection === 'live'
-      ? <DiscoveryFeed />
-      : <PublicLaneScreen section={publicSection} />
-  );
+  const openVideo = (videoId: number) => openRoute({ kind: 'watch', id: videoId });
+
+  const publicContent = (publicSection: PublicSection) => {
+    if (publicSection === 'live') return <DiscoveryFeed onOpen={openVideo} />;
+    if (publicSection === 'uploads') return <UploadsScreen onOpen={openVideo} />;
+    return <PublicLaneScreen section={publicSection} />;
+  };
 
   let content: React.ReactNode;
   if (route.kind === 'watch') {

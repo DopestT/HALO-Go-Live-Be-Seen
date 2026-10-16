@@ -3,14 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { PublicSection } from '../product';
 import { theme } from '../theme';
 
-type PublicLane = Exclude<PublicSection, 'live'>;
+type PublicLane = Exclude<PublicSection, 'live' | 'uploads'>;
 
 const laneContent: Record<PublicLane, { label: string; headline: string; copy: string }> = {
-  uploads: {
-    label: 'UPLOADS',
-    headline: 'Watch beyond the live moment.',
-    copy: 'Long-form and uploaded video will appear here when the verified media feed is connected.',
-  },
   clips: {
     label: 'CLIPS',
     headline: 'The moments worth replaying.',
@@ -54,7 +49,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    backgroundColor: theme.colors.voidBlack,
+    backgroundColor: theme.colors.base,
     paddingHorizontal: 24,
     paddingVertical: 48,
   },
