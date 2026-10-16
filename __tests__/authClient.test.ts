@@ -1,10 +1,10 @@
 import { loginWithApi } from '../src/api/authClient';
 
 describe('loginWithApi', () => {
-  const originalFetch = global.fetch;
+  const originalFetch = globalThis.fetch;
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
     jest.restoreAllMocks();
   });
 
@@ -15,7 +15,7 @@ describe('loginWithApi', () => {
   });
 
   it('authenticates against the real backend login contract', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
+    globalThis.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         token: 'jwt-token',
@@ -35,7 +35,7 @@ describe('loginWithApi', () => {
       'https://api.nscene.watch/',
     );
 
-    expect(global.fetch).toHaveBeenCalledWith('https://api.nscene.watch/api/v1/auth/login', {
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://api.nscene.watch/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'creator@example.com', password: 'password123' }),
@@ -54,7 +54,7 @@ describe('loginWithApi', () => {
   });
 
   it('surfaces a safe error for rejected credentials', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
+    globalThis.fetch = jest.fn().mockResolvedValue({
       ok: false,
       status: 401,
       json: async () => ({ message: 'Invalid email or password' }),
