@@ -1,7 +1,10 @@
 import vercelConfig from '../vercel.json';
 
 describe('Vercel SPA routing', () => {
-  it('serves the Expo web entrypoint for every NSCENE client-side route', () => {
-    expect(vercelConfig.rewrites).toContainEqual({ source: '/(.*)', destination: '/' });
+  it('serves real build files first, then falls back to the Expo web entrypoint for client-side routes', () => {
+    expect(vercelConfig.routes).toEqual([
+      { handle: 'filesystem' },
+      { src: '/.*', dest: '/' },
+    ]);
   });
 });
