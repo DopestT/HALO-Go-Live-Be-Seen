@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { productIdentity } from '../product';
 import { theme } from '../theme';
 
 export const AccountScreen: React.FC = () => {
@@ -12,14 +13,14 @@ export const AccountScreen: React.FC = () => {
     <View style={[styles.container, isWide && styles.containerWide]}>
       <View style={styles.identity}>
         <Text style={styles.eyebrow}>ACCOUNT</Text>
-        <Text style={styles.title}>{user?.username ?? 'HALO member'}</Text>
+        <Text style={styles.title}>{user?.username ?? `${productIdentity.name} member`}</Text>
         <Text style={styles.email}>{user?.email ?? ''}</Text>
       </View>
 
       <View style={[styles.panel, isWide && styles.panelWide]}>
-        <Text style={styles.panelTitle}>Your network</Text>
+        <Text style={styles.panelTitle}>Your NSCENE</Text>
         <Text style={styles.copy}>
-          Following, subscriptions, creator tools, connected audiences, security, and export controls will live here.
+          Your identity, following, subscriptions, connected audiences, security, and export controls live here. Creator Studio is available from the avatar menu.
         </Text>
         <TouchableOpacity style={styles.button} onPress={signOut}>
           <Text style={styles.buttonText}>Sign out</Text>
