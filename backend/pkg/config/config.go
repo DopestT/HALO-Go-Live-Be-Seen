@@ -145,8 +145,8 @@ func (c *Config) validate() error {
 	if len([]byte(c.JWT.SecretKey)) < 32 || c.JWT.SecretKey == "your-secret-key-change-in-production" {
 		return fmt.Errorf("JWT_SECRET_KEY must be at least 32 bytes in production")
 	}
-	if c.Database.SSLMode != "verify-full" {
-		return fmt.Errorf("DB_SSL_MODE must be verify-full in production")
+	if err := validateProductionDatabaseTLS(c.Database.Host, c.Database.SSLMode); err != nil {
+		return err
 	}
 	if c.Server.RateLimitRPS > maxProductionRPS || c.Server.RateLimitBurst > maxProductionBurst {
 		return fmt.Errorf("RATE_LIMIT_RPS or RATE_LIMIT_BURST exceeds the production safety ceiling")
@@ -155,6 +155,19 @@ func (c *Config) validate() error {
 		return err
 	}
 	return nil
+}
+
+func validateProductionDatabaseTLS(host, sslMode string) error {
+	if sslMode == "verify-full" {
+		return nil
+	}
+
+	normalizedHost := strings.ToLower(strings.TrimSpace(host))
+	if sslMode == "require" && strings.HasSuffix(normalizedHost, ".railway.internal") {
+		return nil
+	}
+
+	return fmt.Errorf("DB_SSL_MODE must be verify-full in production unless a Railway private database uses require")
 }
 
 func validateProductionOrigins(raw string) error {

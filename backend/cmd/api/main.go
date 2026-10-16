@@ -57,8 +57,6 @@ func main() {
 	router.Use(middleware.LoggerMiddleware())
 	router.Use(middleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
 
-	// Rate limits are configuration-backed and validated before the server starts.
-	// This avoids a permissive hard-coded production default.
 	rateLimiter := middleware.NewRateLimiter(cfg.Server.RateLimitRPS, cfg.Server.RateLimitBurst)
 	rateLimiter.CleanupOldLimiters()
 	router.Use(middleware.RateLimitMiddleware(rateLimiter))
@@ -112,6 +110,8 @@ func main() {
 		}
 
 		v1.GET("/users/:user_id/videos", videoHandler.GetUserVideos)
+		v1.GET("/creators", authHandler.ListPublicCreators)
+		v1.GET("/creators/:id", authHandler.GetPublicCreator)
 	}
 
 	srv := &http.Server{

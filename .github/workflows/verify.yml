@@ -44,7 +44,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.2'
           cache-dependency-path: backend/go.sum
       - name: Test
         run: go test ./...
@@ -81,13 +81,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: Apply migrations from a clean database
+      - name: Apply migrations idempotently
         run: |
           set -euo pipefail
-          for migration in backend/migrations/*.sql; do
-            echo "Applying ${migration}"
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
-          done
+          sh backend/scripts/migrate.sh
+          sh backend/scripts/migrate.sh
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
+      - name: Verify runtime image migration layout
+        run: |
+          set -euo pipefail
+          docker build -t nscene-api-ci backend
+          docker run --rm --network host \
+            -e DATABASE_URL="$DATABASE_URL" \
+            --entrypoint sh nscene-api-ci /app/scripts/migrate.sh
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
       - name: Verify hardened media constraints fail closed
         run: |
           set -euo pipefail
