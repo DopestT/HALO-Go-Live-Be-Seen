@@ -2,7 +2,8 @@ export const productIdentity = {
   name: 'NSCENE',
   tagline: 'See It. Share It. Live It.',
   motto: 'Built to amplify, not manipulate.',
-  domain: 'nscene.watch',
+  domain: 'nscene.live',
+  secondaryDomain: 'nscene.watch',
 } as const;
 
 export const publicSections = [

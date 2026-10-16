@@ -1,35 +1,34 @@
 /**
- * HALO Design System
- * Void Black aesthetic with rounded geometry and tabular numbers
+ * NSCENE design tokens. Legacy color keys remain as compatibility aliases for
+ * existing screens while new work uses the semantic NSCENE keys.
  */
-
 export const theme = {
   colors: {
-    // Void Black palette - no neon colors
-    voidBlack: '#000000',
-    deepGray: '#121212',
-    darkGray: '#1a1a1a',
-    mediumGray: '#2a2a2a',
-    lightGray: '#3a3a3a',
-    borderGray: '#404040',
-    
-    // Neutral tones
-    textPrimary: '#ffffff',
-    textSecondary: '#b0b0b0',
-    textTertiary: '#808080',
-    
-    // Functional colors - muted, no urgency
-    success: '#4a7c59',
-    warning: '#7c6d4a',
-    error: '#7c4a4a',
-    info: '#4a5c7c',
-    
-    // Glassmorphism
-    glassBackground: 'rgba(18, 18, 18, 0.7)',
-    glassBorder: 'rgba(255, 255, 255, 0.1)',
-    glassHighlight: 'rgba(255, 255, 255, 0.05)',
+    base: '#070A0F',
+    elevated: '#0D1117',
+    card: '#151B23',
+    textPrimary: '#F8FAFC',
+    signalBlue: '#6D8CFF',
+    liveRed: '#FF4D5A',
+    success: '#42D392',
+
+    // Compatibility aliases used by the existing app shell.
+    voidBlack: '#070A0F',
+    deepGray: '#0D1117',
+    darkGray: '#151B23',
+    mediumGray: '#202733',
+    lightGray: '#313A49',
+    borderGray: '#3B4657',
+    textSecondary: '#B8C0CC',
+    textTertiary: '#7F8A99',
+    warning: '#F0A45D',
+    error: '#FF4D5A',
+    info: '#6D8CFF',
+    glassBackground: 'rgba(13, 17, 23, 0.78)',
+    glassBorder: 'rgba(248, 250, 252, 0.10)',
+    glassHighlight: 'rgba(248, 250, 252, 0.05)',
   },
-  
+
   spacing: {
     xs: 4,
     sm: 8,
@@ -38,7 +37,7 @@ export const theme = {
     xl: 32,
     xxl: 48,
   },
-  
+
   borderRadius: {
     small: 8,
     medium: 12,
@@ -46,12 +45,11 @@ export const theme = {
     extraLarge: 20,
     round: 9999,
   },
-  
+
   typography: {
-    // Tabular numbers for consistency
     fontFamily: {
       regular: 'System',
-      tabular: 'System', // Using system font with tabular-nums variant
+      tabular: 'System',
     },
     fontSize: {
       xs: 12,
@@ -74,7 +72,7 @@ export const theme = {
       relaxed: 1.75,
     },
   },
-  
+
   shadows: {
     small: {
       shadowColor: '#000',
@@ -98,15 +96,13 @@ export const theme = {
       elevation: 8,
     },
   },
-  
-  // Glassmorphism effect settings
+
   glassmorphism: {
     blur: 10,
     opacity: 0.7,
     borderOpacity: 0.1,
   },
-  
-  // Low-density layout spacing
+
   layout: {
     feedItemSpacing: 24,
     contentPadding: 16,
