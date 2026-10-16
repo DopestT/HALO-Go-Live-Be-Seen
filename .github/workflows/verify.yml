@@ -81,13 +81,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: Apply migrations from a clean database
+      - name: Apply migrations idempotently
         run: |
           set -euo pipefail
-          for migration in backend/migrations/*.sql; do
-            echo "Applying ${migration}"
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
-          done
+          sh backend/scripts/migrate.sh
+          sh backend/scripts/migrate.sh
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
       - name: Verify hardened media constraints fail closed
         run: |
           set -euo pipefail
