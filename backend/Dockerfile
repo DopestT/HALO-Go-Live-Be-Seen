@@ -21,7 +21,7 @@ RUN apk add --no-cache ca-certificates postgresql-client \
 WORKDIR /app
 COPY --from=builder --chown=nscene:nscene /out/nscene-api /app/nscene-api
 COPY --chown=nscene:nscene migrations /app/migrations
-COPY --chown=nscene:nscene scripts/migrate.sh /app/migrate.sh
+COPY --chown=nscene:nscene scripts /app/scripts
 
 USER nscene:nscene
 EXPOSE 8080
