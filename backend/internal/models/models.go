@@ -17,6 +17,16 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
 }
 
+// PublicCreator is the deliberately minimal public representation of a user
+// who has published at least one video. It must not include account-private fields.
+type PublicCreator struct {
+	ID          int64  `json:"id" db:"id"`
+	Username    string `json:"username" db:"username"`
+	DisplayName string `json:"display_name" db:"display_name"`
+	Bio         string `json:"bio" db:"bio"`
+	AvatarURL   string `json:"avatar_url" db:"avatar_url"`
+}
+
 // Video represents video metadata
 type Video struct {
 	ID             int64     `json:"id" db:"id"`
