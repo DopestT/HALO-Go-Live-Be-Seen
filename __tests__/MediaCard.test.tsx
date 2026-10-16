@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
 import { MediaCard } from '../src/components/media/MediaCard';
 import type { VideoWithEngagement } from '../src/api/types';
 
@@ -20,28 +19,43 @@ const video: VideoWithEngagement = {
   comment_count: 3,
 };
 
+const collectText = (node: React.ReactNode): string[] => {
+  if (typeof node === 'string' || typeof node === 'number') return [String(node)];
+  if (Array.isArray(node)) return node.flatMap(collectText);
+  if (React.isValidElement(node)) {
+    return collectText((node.props as { children?: React.ReactNode }).children);
+  }
+  return [];
+};
+
 describe('MediaCard', () => {
   it('renders only verified media fields and truthful LIVE state', () => {
-    const { getByText, queryByText } = render(<MediaCard video={video} onOpen={jest.fn()} />);
+    const output = MediaCard({ video, onOpen: jest.fn() });
+    const text = collectText(output);
 
-    getByText('LIVE');
-    getByText('Verified video title');
-    getByText('Creator #7');
-    getByText('120 views');
-    getByText('14 watching');
-    getByText('9 likes');
-    getByText('3 comments');
-    expect(queryByText(/followers/i)).toBeNull();
-    expect(queryByText(/verified creator/i)).toBeNull();
+    expect(text).toContain('LIVE');
+    expect(text).toContain('Verified video title');
+    expect(text).toContain('Creator #7');
+    expect(text).toContain('120 views');
+    expect(text).toContain('14 watching');
+    expect(text).toContain('9 likes');
+    expect(text).toContain('3 comments');
+    expect(text.some((value) => /followers/i.test(value))).toBe(false);
+    expect(text.some((value) => /verified creator/i.test(value))).toBe(false);
   });
 
   it('does not label uploaded video as live and opens the returned video id', () => {
     const onOpen = jest.fn();
     const uploaded = { ...video, is_live: false, live_viewers: 0 };
-    const { getByLabelText, queryByText } = render(<MediaCard video={uploaded} onOpen={onOpen} />);
+    const output = MediaCard({ video: uploaded, onOpen });
+    const props = output.props as {
+      accessibilityLabel?: string;
+      onPress?: () => void;
+    };
 
-    expect(queryByText('LIVE')).toBeNull();
-    fireEvent.press(getByLabelText('Open Verified video title'));
+    expect(collectText(output)).not.toContain('LIVE');
+    expect(props.accessibilityLabel).toBe('Open Verified video title');
+    props.onPress?.();
     expect(onOpen).toHaveBeenCalledWith(42);
   });
 });

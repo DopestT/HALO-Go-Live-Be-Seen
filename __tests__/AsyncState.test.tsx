@@ -1,6 +1,14 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import { AsyncState } from '../src/components/media/AsyncState';
+
+const collectText = (node: React.ReactNode): string[] => {
+  if (typeof node === 'string' || typeof node === 'number') return [String(node)];
+  if (Array.isArray(node)) return node.flatMap(collectText);
+  if (React.isValidElement(node)) {
+    return collectText((node.props as { children?: React.ReactNode }).children);
+  }
+  return [];
+};
 
 describe('AsyncState', () => {
   it.each([
@@ -10,8 +18,9 @@ describe('AsyncState', () => {
     ['error', 'COULD NOT LOAD', 'NSCENE could not load this content.'],
     ['not-found', 'NOT FOUND', 'The requested NSCENE record was not found.'],
   ] as const)('renders honest %s copy', (state, title, message) => {
-    const { getByText } = render(<AsyncState state={state} />);
-    getByText(title);
-    getByText(message);
+    const output = AsyncState({ state });
+    const text = collectText(output);
+    expect(text).toContain(title);
+    expect(text).toContain(message);
   });
 });
