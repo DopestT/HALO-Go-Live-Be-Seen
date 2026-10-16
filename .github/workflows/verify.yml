@@ -87,6 +87,14 @@ jobs:
           sh backend/scripts/migrate.sh
           sh backend/scripts/migrate.sh
           test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
+      - name: Verify runtime image migration layout
+        run: |
+          set -euo pipefail
+          docker build -t nscene-api-ci backend
+          docker run --rm --network host \
+            -e DATABASE_URL="$DATABASE_URL" \
+            --entrypoint sh nscene-api-ci /app/scripts/migrate.sh
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
       - name: Verify hardened media constraints fail closed
         run: |
           set -euo pipefail
