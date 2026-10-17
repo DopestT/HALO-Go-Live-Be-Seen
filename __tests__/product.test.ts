@@ -47,11 +47,11 @@ describe('NSCENE product contract', () => {
   });
 
   it('uses the approved NSCENE semantic colors', () => {
-    expect(theme.colors.base).toBe('#070A0F');
-    expect(theme.colors.elevated).toBe('#0D1117');
+    expect(theme.colors.base).toBe('#030706');
+    expect(theme.colors.elevated).toBe('#101613');
     expect(theme.colors.card).toBe('#151B23');
     expect(theme.colors.textPrimary).toBe('#F8FAFC');
-    expect(theme.colors.signalBlue).toBe('#6D8CFF');
+    expect(theme.colors.signalBlue).toBe('#FFDA77');
     expect(theme.colors.liveRed).toBe('#FF4D5A');
     expect(theme.colors.success).toBe('#42D392');
   });

@@ -1,6 +1,15 @@
 {
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/" }
-  ]
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/"
+    }
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm ci --legacy-peer-deps",
+  "framework": null
 }
