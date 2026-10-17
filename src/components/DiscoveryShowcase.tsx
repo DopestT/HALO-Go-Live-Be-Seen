@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { NewsDesk } from './NewsDesk';
+import { livePreviewMedia, trendingClipPreviews } from '../content/previewMedia';
 import type { PublicSection } from '../product';
+import { NewsDesk } from './NewsDesk';
+import { PreviewVideoCard } from './PreviewVideoCard';
 
 const photo = (id: string, width = 700) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
 const images = {
@@ -15,11 +17,6 @@ const images = {
   camera: photo('photo-1516035069371-29a1b244cc32'),
   mountains: photo('photo-1464822759023-fed622ff2c3b'),
 };
-const clips = [
-  ['Sunset in Santorini', 'Travel', images.coast], ['Guitar Loop', 'Music', images.music],
-  ['Quick Recipe Hack', 'Food', images.food], ['Daily Motivation', 'Fitness', images.fitness],
-  ['Art Time Lapse', 'Art', images.art], ['Behind the Scenes', 'Photography', images.camera],
-];
 const shows = [
   ['Creators Unfiltered', 'Weekly conversations with creators.', images.portrait],
   ['Travel Sessions', 'Real places. Real people.', images.mountains],
@@ -69,19 +66,16 @@ export function DiscoveryShowcase({ children, previewLive, onSection }: Props) {
       <View style={s.section} onLayout={(event) => { liveY.current = event.nativeEvent.layout.y; }}>
         {heading('Live Now', 'live')}{children}
         {previewLive && <><Text style={s.previewNote}>Discover the possibilities · Preview cards, not live broadcasts</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>{[
-            ['Morning Vibes', 'Just Chatting', images.portrait], ['Acoustic Thursday', 'Music', images.music], ['Workout With Me', 'Fitness', images.fitness], ['Game Night', 'Gaming', images.gaming], ['Beach Walk', 'Travel', images.coast],
-          ].map(([title, category, uri]) => <TouchableOpacity accessibilityRole="button" key={title} style={{ width: compact ? 230 : Math.max(210, Math.min(265, (width - 100) / 5)) }} onPress={() => onSection?.('creators')}><ImageBackground source={{ uri }} style={[s.thumbnail, { height: 155 }]} imageStyle={s.rounded}><Text style={s.previewBadge}>PREVIEW</Text></ImageBackground><Text style={s.cardTitle}>{title}</Text><Text style={s.category}>{category}</Text></TouchableOpacity>)}</ScrollView></>}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
+            {livePreviewMedia.map(media => <View key={media.id} style={{ width: compact ? 230 : Math.max(210, Math.min(265, (width - 100) / 5)) }}><PreviewVideoCard media={media} height={155} /></View>)}
+          </ScrollView></>}
 
       </View>
       <View style={s.section}>
         {heading('Trending Clips', 'clips')}
         <Text style={s.previewNote}>Preview collection · Illustrative content, not published clips</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
-          {clips.map(([title, category, uri]) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Explore ${category.toLowerCase()} clips`} key={title} style={[s.clip, { width: compact ? 176 : Math.max(170, Math.min(216, (width - 116) / 6)) }]} onPress={() => onSection?.('clips')}>
-            <ImageBackground source={{ uri }} style={s.thumbnail} imageStyle={s.rounded}><Text style={s.previewBadge}>PREVIEW</Text></ImageBackground>
-            <Text numberOfLines={1} style={s.cardTitle}>{title}</Text><Text style={s.category}>{category}</Text>
-          </TouchableOpacity>)}
+          {trendingClipPreviews.map(({ title, category, media }) => <View key={title} style={[s.clip, { width: compact ? 176 : Math.max(170, Math.min(216, (width - 116) / 6)) }]}><PreviewVideoCard media={media} title={title} category={category} /></View>)}
         </ScrollView>
       </View>
       <View style={s.section}>
@@ -113,7 +107,7 @@ const s = StyleSheet.create({
   actions: { flexDirection: 'row', gap: 14, marginTop: 24 }, goldButton: { minHeight: 44, paddingHorizontal: 22, backgroundColor: '#ffda77', borderRadius: 7, alignItems: 'center', justifyContent: 'center' }, darkText: { color: '#17160f', fontSize: 13, fontWeight: '800' },
   outlineButton: { borderColor: '#b5b8b5', borderWidth: 1, borderRadius: 7, paddingHorizontal: 28, minHeight: 44, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,.35)' }, buttonText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   carousel: { position: 'absolute', bottom: 10, left: 12, right: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, arrow: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#929995', backgroundColor: '#0c1214', alignItems: 'center', justifyContent: 'center' }, arrowText: { color: '#fff', fontSize: 28 }, dots: { flexDirection: 'row' }, dotTarget: { width: 26, height: 32, alignItems: 'center', justifyContent: 'center' }, dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#888' }, activeDot: { width: 18, backgroundColor: '#fff' },
-  section: { marginTop: 24, paddingHorizontal: 8 }, heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }, sectionTitle: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: -.6 }, viewAll: { minHeight: 36, justifyContent: 'center' }, secondary: { color: '#c9cecb', fontSize: 12 }, previewNote: { color: '#959d98', fontSize: 11, marginBottom: 12 }, row: { gap: 16 }, clip: { flexShrink: 0 }, thumbnail: { height: 125, overflow: 'hidden', borderRadius: 6 }, rounded: { borderRadius: 6 }, previewBadge: { position: 'absolute', right: 6, bottom: 6, backgroundColor: '#141a18', color: '#eee', padding: 4, borderRadius: 3, fontSize: 9, fontWeight: '700' }, cardTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: 9 }, category: { color: '#9da6a0', fontSize: 11, marginTop: 5 },
+  section: { marginTop: 24, paddingHorizontal: 8 }, heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }, sectionTitle: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: -.6 }, viewAll: { minHeight: 36, justifyContent: 'center' }, secondary: { color: '#c9cecb', fontSize: 12 }, previewNote: { color: '#959d98', fontSize: 11, marginBottom: 12 }, row: { gap: 16 }, clip: { flexShrink: 0 }, thumbnail: { height: 125, overflow: 'hidden', borderRadius: 6 }, rounded: { borderRadius: 6 }, cardTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: 9 }, category: { color: '#9da6a0', fontSize: 11, marginTop: 5 },
   showGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 14 }, show: { overflow: 'hidden', borderRadius: 6 }, showImage: { height: 222, padding: 20, justifyContent: 'space-between' }, showShade: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, backgroundColor: 'rgba(0,0,0,.46)' }, showTitle: { color: '#fff', fontSize: 32, lineHeight: 35, fontWeight: '900', maxWidth: 200 }, showCopy: { color: '#fff', fontSize: 12, lineHeight: 18 }, showExplore: { color: '#ffda77', fontSize: 13, fontWeight: '700', marginTop: 12 },
   communitySection: { borderTopWidth: 1, borderColor: '#424943', paddingTop: 22 }, communityHeading: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between', marginBottom: 14 }, descriptionSmall: { color: '#d8ddd9', fontSize: 13, marginTop: 6 }, communityTools: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center' }, search: { color: '#fff', backgroundColor: '#121917', borderRadius: 24, paddingHorizontal: 16, height: 44, width: 230 }, community: { borderWidth: 1, borderColor: '#202922', borderRadius: 7, padding: 8 }, join: { marginTop: 16, minHeight: 38, borderWidth: 1, borderColor: '#a58b4c', borderRadius: 5, alignItems: 'center', justifyContent: 'center' }, footer: { color: '#737d76', fontSize: 10, letterSpacing: 2, textAlign: 'center', marginTop: 40 },
 });
