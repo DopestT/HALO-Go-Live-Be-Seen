@@ -7,6 +7,12 @@ export type PreviewMediaItem = {
   sourcePage: string;
 };
 
+export type TrendingClipPreview = {
+  title: string;
+  category: string;
+  media: PreviewMediaItem;
+};
+
 const poster = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=85`;
 
 export const previewMedia: PreviewMediaItem[] = [
@@ -91,3 +97,20 @@ export const previewMediaByTitle = Object.fromEntries(
 export const previewMediaByCategory = Object.fromEntries(
   previewMedia.map(item => [item.category, item]),
 ) as Record<string, PreviewMediaItem>;
+
+export const livePreviewMedia: PreviewMediaItem[] = [
+  previewMediaByTitle['Morning Vibes'],
+  previewMediaByTitle['Acoustic Thursday'],
+  previewMediaByTitle['Workout With Me'],
+  previewMediaByTitle['Game Night'],
+  previewMediaByTitle['Beach Walk'],
+];
+
+export const trendingClipPreviews: TrendingClipPreview[] = [
+  { title: 'Sunset in Santorini', category: 'Travel', media: previewMediaByCategory.Travel },
+  { title: 'Guitar Loop', category: 'Music', media: previewMediaByCategory.Music },
+  { title: 'Quick Recipe Hack', category: 'Food', media: previewMediaByCategory.Food },
+  { title: 'Daily Motivation', category: 'Fitness', media: previewMediaByCategory.Fitness },
+  { title: 'Art Time Lapse', category: 'Art', media: previewMediaByCategory.Art },
+  { title: 'Behind the Scenes', category: 'Photography', media: previewMediaByCategory.Photography },
+];
