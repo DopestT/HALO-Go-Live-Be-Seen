@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 export type NewsItem = { id: string; title: string; source: string; url: string; publishedAt: string; category: string };
 declare const process: { env: { EXPO_PUBLIC_NEWS_URL?: string } };
 
@@ -20,9 +21,9 @@ export function parseNews(payload: unknown, now = Date.now()): NewsItem[] {
 }
 
 export async function loadNews(signal: AbortSignal): Promise<NewsItem[]> {
-  const endpoint = process.env.EXPO_PUBLIC_NEWS_URL?.trim();
+  const endpoint = process.env.EXPO_PUBLIC_NEWS_URL?.trim() || (Platform.OS === 'web' ? '/api/news' : '');
   if (!endpoint) return []; // No publisher connected: never manufacture headlines.
-  if (!endpoint.startsWith('https://')) throw new Error('News endpoint must use HTTPS');
+  if (endpoint !== '/api/news' && !endpoint.startsWith('https://')) throw new Error('News endpoint must use HTTPS');
   const response = await fetch(endpoint, { signal });
   if (!response.ok) throw new Error('News feed unavailable');
   return parseNews(await response.json());
