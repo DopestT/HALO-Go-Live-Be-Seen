@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { loadNews, newsAge, NewsItem } from '../api/news';
+import { previewMediaByTitle } from '../content/previewMedia';
+import { PreviewVideoCard } from './PreviewVideoCard';
+
+const newsroomPreview = previewMediaByTitle['NSCENE Newsroom'];
 
 export function NewsDesk() {
   const [items, setItems] = useState<NewsItem[]>([]);
@@ -70,6 +74,7 @@ export function NewsDesk() {
     </View>
     {expanded && <View style={s.feed}>
       <View style={s.heading}><View><Text accessibilityRole="header" style={s.title}>The News Feed</Text><Text style={s.sub}>Headlines. Original sources. The wider picture.</Text></View><TouchableOpacity accessibilityRole="button" onPress={() => setRefresh(refresh + 1)} style={s.refresh}><Text style={s.gold}>Refresh ↻</Text></TouchableOpacity></View>
+      <View style={s.newsroomPreview}><PreviewVideoCard media={newsroomPreview} height={180} /></View>
       {items.length ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>{categories.map(name => <TouchableOpacity key={name} accessibilityRole="button" accessibilityState={{ selected: selected === name }} onPress={() => setCategory(name)} style={[s.filter, selected === name && s.selected]}><Text style={selected === name ? s.badgeText : s.source}>{name}</Text></TouchableOpacity>)}</ScrollView>
         <View style={s.cards}>{visible.map(item => <TouchableOpacity key={item.id} accessibilityRole="link" accessibilityLabel={`${item.title}. Read at ${item.source}`} onPress={() => void open(item)} style={s.card}><Text style={s.gold}>{item.category.toUpperCase()}</Text><Text style={s.cardTitle}>{item.title}</Text><Text style={s.source}>{item.source} · {newsAge(item.publishedAt)}</Text><Text style={s.date}>{new Date(item.publishedAt).toLocaleString()}{Date.now() - Date.parse(item.publishedAt) > 86400000 ? ' · Older story' : ''}</Text><Text style={s.read}>Read original ↗</Text></TouchableOpacity>)}</View></> : <View style={s.empty}><Text style={s.idle}>{idle}</Text><Text style={s.sub}>Source-linked stories will appear here when the news feed is connected.</Text></View>}
       {!!linkError && <Text accessibilityLiveRegion="polite" style={s.sub}>{linkError}</Text>}
@@ -84,6 +89,7 @@ const s = StyleSheet.create({
   control: { paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' }, controlText: { color: '#ffda77', fontSize: 10, fontWeight: '700' },
   idle: { color: '#d8dfda', fontSize: 13, paddingHorizontal: 12, lineHeight: 20 },
   feed: { padding: 18, backgroundColor: '#080d0a' }, heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }, title: { color: '#fff', fontSize: 23, fontWeight: '800' }, sub: { color: '#96a39a', fontSize: 12, lineHeight: 19, marginTop: 6 }, refresh: { minHeight: 44, justifyContent: 'center' }, gold: { color: '#ffda77', fontSize: 11, fontWeight: '700' },
+  newsroomPreview: { width: '100%', maxWidth: 380, marginTop: 16, marginBottom: 2 },
   filters: { gap: 8, paddingVertical: 16 }, filter: { paddingHorizontal: 14, minHeight: 34, justifyContent: 'center', borderRadius: 20, borderWidth: 1, borderColor: '#384039' }, selected: { backgroundColor: '#ffda77', borderColor: '#ffda77' },
   cards: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 }, card: { flexBasis: 240, flexGrow: 1, padding: 18, borderWidth: 1, borderColor: '#27342a', borderRadius: 7 }, cardTitle: { color: '#fff', fontSize: 18, lineHeight: 25, fontWeight: '700', marginVertical: 12 }, date: { color: '#8f9c93', fontSize: 10, marginTop: 5 }, read: { color: '#ffda77', fontSize: 12, marginTop: 18 }, empty: { paddingVertical: 18 },
 });
