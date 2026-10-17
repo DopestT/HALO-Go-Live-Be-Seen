@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { NewsDesk } from './NewsDesk';
 import type { PublicSection } from '../product';
 
 const photo = (id: string, width = 700) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
@@ -64,6 +65,7 @@ export function DiscoveryShowcase({ children, previewLive, onSection }: Props) {
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next featured image" onPress={() => setSlide((slide + 1) % 3)} style={s.arrow}><Text style={s.arrowText}>›</Text></TouchableOpacity>
         </View>
       </ImageBackground>
+      <NewsDesk />
       <View style={s.section} onLayout={(event) => { liveY.current = event.nativeEvent.layout.y; }}>
         {heading('Live Now', 'live')}{children}
         {previewLive && <><Text style={s.previewNote}>Discover the possibilities · Preview cards, not live broadcasts</Text>
