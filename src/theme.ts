@@ -4,17 +4,17 @@
  */
 export const theme = {
   colors: {
-    base: '#070A0F',
-    elevated: '#0D1117',
+    base: '#030706',
+    elevated: '#101613',
     card: '#151B23',
     textPrimary: '#F8FAFC',
-    signalBlue: '#6D8CFF',
+    signalBlue: '#FFDA77',
     liveRed: '#FF4D5A',
     success: '#42D392',
 
     // Compatibility aliases used by the existing app shell.
-    voidBlack: '#070A0F',
-    deepGray: '#0D1117',
+    voidBlack: '#030706',
+    deepGray: '#101613',
     darkGray: '#151B23',
     mediumGray: '#202733',
     lightGray: '#313A49',
@@ -23,7 +23,7 @@ export const theme = {
     textTertiary: '#7F8A99',
     warning: '#F0A45D',
     error: '#FF4D5A',
-    info: '#6D8CFF',
+    info: '#FFDA77',
     glassBackground: 'rgba(13, 17, 23, 0.78)',
     glassBorder: 'rgba(248, 250, 252, 0.10)',
     glassHighlight: 'rgba(248, 250, 252, 0.05)',

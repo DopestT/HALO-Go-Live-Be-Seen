@@ -30,13 +30,15 @@ const stateCopy: Record<AsyncStateKind, { title: string; message: string }> = {
 export const AsyncState = ({
   state,
   message,
+  compact = false,
 }: {
   state: AsyncStateKind;
   message?: string;
+  compact?: boolean;
 }) => {
   const copy = stateCopy[state];
   return (
-    <View accessibilityLiveRegion="polite" style={styles.wrap}>
+    <View accessibilityLiveRegion="polite" style={[styles.wrap, compact && { minHeight: 80, padding: 12, marginBottom: 12 }]}>
       {state === 'loading' ? <ActivityIndicator accessibilityLabel="Loading NSCENE content" /> : null}
       <Text style={styles.title}>{copy.title}</Text>
       <Text style={styles.message}>{message ?? copy.message}</Text>

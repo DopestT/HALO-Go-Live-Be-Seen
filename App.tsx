@@ -76,7 +76,7 @@ const AppContent: React.FC = () => {
   const openCreator = (creatorId: number) => openRoute({ kind: 'creator', id: creatorId });
 
   const publicContent = (publicSection: PublicSection) => {
-    if (publicSection === 'live') return <DiscoveryFeed onOpen={openVideo} />;
+    if (publicSection === 'live') return <DiscoveryFeed onOpen={openVideo} onSection={openSection} />;
     if (publicSection === 'uploads') return <UploadsScreen onOpen={openVideo} />;
     if (publicSection === 'creators') return <CreatorsScreen onOpen={openCreator} />;
     return <PublicLaneScreen section={publicSection} />;
@@ -141,7 +141,7 @@ const AppContent: React.FC = () => {
             >
               <Text style={styles.brand}>{productIdentity.name}</Text>
             </TouchableOpacity>
-            {isCompact ? accountControl : null}
+            {isCompact ? <View style={styles.headerActions}>{accountControl}<TouchableOpacity accessibilityRole="button" onPress={() => openSection('studio')} style={styles.createButton}><Text style={styles.createText}>Create</Text></TouchableOpacity></View> : null}
           </View>
 
           <ScrollView
@@ -162,7 +162,7 @@ const AppContent: React.FC = () => {
             </View>
           </ScrollView>
 
-          {!isCompact ? accountControl : null}
+          {!isCompact ? <View style={styles.headerActions}>{accountControl}<TouchableOpacity accessibilityRole="button" onPress={() => openSection('studio')} style={styles.createButton}><Text style={styles.createText}>Create</Text></TouchableOpacity></View> : null}
 
           {isAuthenticated && accountMenuOpen && (
             <View style={[styles.accountMenu, isCompact && styles.accountMenuCompact]}>
@@ -223,6 +223,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  createButton: { backgroundColor: '#ffda77', borderRadius: 7, minHeight: 40, paddingHorizontal: 20, justifyContent: 'center' },
+  createText: { color: '#14150f', fontSize: 13, fontWeight: '800' },
   app: {
     flex: 1,
     width: '100%',
@@ -238,7 +241,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 18,
-    backgroundColor: 'rgba(7,10,15,0.96)',
+    backgroundColor: '#030706',
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.borderGray,
     zIndex: 100,
@@ -263,9 +266,9 @@ const styles = StyleSheet.create({
   },
   brand: {
     color: theme.colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: 3,
+    fontSize: 25,
+    fontWeight: '900',
+    letterSpacing: -1,
   },
   publicNavScroll: {
     flex: 1,
@@ -289,7 +292,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   navButtonActive: {
-    backgroundColor: theme.colors.elevated,
+    borderBottomWidth: 2,
+    borderBottomColor: '#ffda77',
   },
   navButtonText: {
     color: theme.colors.textTertiary,
