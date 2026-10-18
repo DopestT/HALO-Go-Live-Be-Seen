@@ -9,8 +9,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "test:ci": "jest --runInBand",
+    "test:ci": "node scripts/dependency-mitigations.mjs && npm run test:security && jest --runInBand",
     "typecheck": "tsc --noEmit",
+    "postinstall": "node scripts/dependency-mitigations.mjs --apply",
+    "test:security": "node --test scripts/security-mitigations.test.cjs",
     "verify": "npm run test:ci && npm run typecheck",
     "build": "expo export --platform web"
   },
