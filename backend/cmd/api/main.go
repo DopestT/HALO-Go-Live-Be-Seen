@@ -48,7 +48,8 @@ func main() {
 
 	authService := auth.NewService(authRepo)
 	videoService := video.NewService(videoRepo, redisClient)
-	messagingService := messaging.NewService(messagingRepo)
+	messagingPublisher := messaging.NewRedisEventPublisher(redisClient)
+	messagingService := messaging.NewService(messagingRepo, messagingPublisher)
 
 	jwtManager := auth.NewJWTManager(cfg.JWT.SecretKey, cfg.JWT.ExpirationHours)
 
