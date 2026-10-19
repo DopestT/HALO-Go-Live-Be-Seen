@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "NSCENE",
-    "slug": "halo-go-live-be-seen",
+    "slug": "nscene",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
