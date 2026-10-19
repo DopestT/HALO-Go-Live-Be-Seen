@@ -27,3 +27,10 @@
 - **Ruling:** pair-sensitive writes lock both user rows in ascending ID order inside the same transaction. Conversation creation, send, block, and unblock therefore serialize consistently for one pair; send also locks the conversation row. Cost if wrong: concurrent operations on the same two users serialize more aggressively, but unrelated user pairs remain independent and policy cannot be bypassed by a block/send race.
 - **Ruling:** accept/decline updates mutate only conversations still in `pending`; if another transition already won, the repository reloads current state and returns an idempotent result or the correct terminal error. Cost if wrong: a concurrent accept/decline can no longer overwrite the first completed transition.
 - **GREEN:** commit `627094f48577aca50fe9a821b92ba5631996a70f`; Verify HALO run `39248079521`; client tests/typecheck, sqlc generation, Messenger/backend tests, vet, API build, four migrations, runtime Docker migration, and hardened-media constraints all passed.
+
+## Task 3 — Authenticated HTTP API and per-user rate limits
+
+- **RED:** commit `400739f0707320bd4be257f80b865c76ae852a1d`; Verify HALO run `39248572849`; backend failed only on missing Handler/HandlerService/UserRateLimiter/RateAction symbols, while existing client tests stayed green.
+- **Ruling:** Messenger product limits are keyed by authenticated user ID and action in a dedicated fixed-window limiter; the existing IP limiter remains a separate global abuse layer. Cost if wrong: a fixed window is simpler than a sliding window and permits boundary bursts, but enforces the exact approved request ceilings without conflating users behind one IP.
+- **Ruling:** handler JSON bodies are capped at 16 KiB and sender identity is never represented in request DTOs. Extra client-supplied sender fields are ignored; acting identity comes only from JWT middleware context `user_id`.
+- **GREEN:** commit `eb9dcdc4db578f1cec66c5968f673b8de2f91b12`; Verify HALO run `39248923696`; complete Messenger route tests, exact rate-limit boundary tests, backend tests/vet/API build, runtime migrations, and existing client tests/typecheck all passed.
