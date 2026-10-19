@@ -1,4 +1,4 @@
-.PHONY: build run test clean docker-up docker-down migrate help
+.PHONY: build run test clean docker-up docker-down migrate generate help
 
 # Build the application
 build:
@@ -54,6 +54,12 @@ migrate:
 	@psql -h localhost -U postgres -d halo -f migrations/001_init.sql
 	@echo "Migrations complete"
 
+# Generate typed SQL access for Messenger
+generate:
+	@echo "Generating sqlc query code..."
+	@go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
+	@echo "sqlc generation complete"
+
 # Format code
 fmt:
 	@echo "Formatting code..."
@@ -86,6 +92,7 @@ help:
 	@echo "  make docker-up      - Start Docker services (DB, Redis, API)"
 	@echo "  make docker-down    - Stop Docker services"
 	@echo "  make migrate        - Run database migrations"
+	@echo "  make generate       - Generate typed sqlc query code"
 	@echo "  make fmt            - Format code"
 	@echo "  make lint           - Lint code"
 	@echo "  make deps           - Download and tidy dependencies"
