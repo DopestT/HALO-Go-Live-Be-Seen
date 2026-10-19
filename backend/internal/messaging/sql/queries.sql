@@ -8,11 +8,26 @@ WHERE direct_user_low_id = sqlc.arg(user_low_id)
   AND direct_user_high_id = sqlc.arg(user_high_id)
 LIMIT 1;
 
+-- name: FindDirectConversationForUpdate :one
+SELECT *
+FROM conversations
+WHERE direct_user_low_id = sqlc.arg(user_low_id)
+  AND direct_user_high_id = sqlc.arg(user_high_id)
+LIMIT 1
+FOR UPDATE;
+
 -- name: GetConversation :one
 SELECT *
 FROM conversations
 WHERE id = sqlc.arg(conversation_id)
 LIMIT 1;
+
+-- name: GetConversationForUpdate :one
+SELECT *
+FROM conversations
+WHERE id = sqlc.arg(conversation_id)
+LIMIT 1
+FOR UPDATE;
 
 -- name: CreateDirectConversation :one
 INSERT INTO conversations (
@@ -67,6 +82,7 @@ UPDATE conversations
 SET request_status = sqlc.arg(request_status),
     updated_at = CURRENT_TIMESTAMP
 WHERE id = sqlc.arg(conversation_id)
+  AND request_status = 'pending'
 RETURNING *;
 
 -- name: TouchConversationAfterMessage :exec
@@ -77,12 +93,12 @@ WHERE id = sqlc.arg(conversation_id);
 
 -- name: UpdateLastReadMessage :exec
 UPDATE conversation_participants cp
-SET last_read_message_id = sqlc.arg(message_id)
+SET last_read_message_id = sqlc.arg(message_id)::bigint
 WHERE cp.conversation_id = sqlc.arg(conversation_id)
   AND cp.user_id = sqlc.arg(user_id)
   AND EXISTS (
       SELECT 1 FROM messages m
-      WHERE m.id = sqlc.arg(message_id)
+      WHERE m.id = sqlc.arg(message_id)::bigint
         AND m.conversation_id = cp.conversation_id
   );
 
