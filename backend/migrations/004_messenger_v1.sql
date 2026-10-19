@@ -42,14 +42,24 @@ CREATE TABLE IF NOT EXISTS user_blocks (
     CHECK (blocker_id <> blocked_user_id)
 );
 
-CREATE TABLE IF NOT EXISTS moderation_reports (
-    id BIGSERIAL PRIMARY KEY,
-    reporter_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    target_type VARCHAR(16) NOT NULL CHECK (target_type IN ('message','user')),
-    target_id BIGINT NOT NULL,
-    conversation_id BIGINT REFERENCES conversations(id) ON DELETE SET NULL,
-    reason_code VARCHAR(32) NOT NULL CHECK (
-        reason_code IN (
+-- Reuse the platform moderation_reports table created by 002_live_network_core.sql.
+-- Messenger-specific target metadata stays nullable so existing live reports remain valid.
+ALTER TABLE moderation_reports
+    ADD COLUMN IF NOT EXISTS messenger_target_type VARCHAR(16),
+    ADD COLUMN IF NOT EXISTS messenger_target_id BIGINT,
+    ADD COLUMN IF NOT EXISTS conversation_id BIGINT REFERENCES conversations(id) ON DELETE SET NULL;
+
+ALTER TABLE moderation_reports
+    ADD CONSTRAINT moderation_reports_messenger_target_check CHECK (
+        (messenger_target_type IS NULL AND messenger_target_id IS NULL AND conversation_id IS NULL)
+        OR (
+            messenger_target_type IN ('message','user')
+            AND messenger_target_id IS NOT NULL
+        )
+    ) NOT VALID,
+    ADD CONSTRAINT moderation_reports_messenger_reason_check CHECK (
+        messenger_target_type IS NULL
+        OR reason_code IN (
             'spam',
             'harassment',
             'hate_or_abuse',
@@ -58,12 +68,10 @@ CREATE TABLE IF NOT EXISTS moderation_reports (
             'impersonation',
             'other'
         )
-    ),
-    detail TEXT CHECK (detail IS NULL OR char_length(detail) <= 1000),
-    review_status VARCHAR(16) NOT NULL DEFAULT 'open'
-        CHECK (review_status IN ('open','reviewing','resolved','dismissed')),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    ) NOT VALID,
+    ADD CONSTRAINT moderation_reports_messenger_detail_check CHECK (
+        messenger_target_type IS NULL OR char_length(detail) <= 1000
+    ) NOT VALID;
 
 CREATE INDEX IF NOT EXISTS idx_conversations_last_message
     ON conversations(last_message_at DESC NULLS LAST, id DESC);
@@ -77,8 +85,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_sender
     ON messages(sender_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked
     ON user_blocks(blocked_user_id, blocker_id);
-CREATE INDEX IF NOT EXISTS idx_moderation_reports_review
-    ON moderation_reports(review_status, created_at ASC);
+CREATE INDEX IF NOT EXISTS idx_moderation_reports_messenger_review
+    ON moderation_reports(status, created_at ASC)
+    WHERE messenger_target_type IS NOT NULL;
 
 CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON conversations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
