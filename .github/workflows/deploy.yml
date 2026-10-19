@@ -49,8 +49,9 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO }}
         run: |
-          npx --yes eas-cli@24.8.0 config --platform ios --profile production --non-interactive >/dev/null
-          npx --yes eas-cli@24.8.0 config --platform android --profile production --non-interactive >/dev/null
+          npx --yes eas-cli@24.8.0 whoami --non-interactive
+          npx --yes eas-cli@24.8.0 config --platform ios --profile production --non-interactive
+          npx --yes eas-cli@24.8.0 config --platform android --profile production --non-interactive
 
       - name: Build production apps with pinned EAS CLI
         env:
