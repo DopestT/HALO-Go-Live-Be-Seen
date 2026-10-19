@@ -34,3 +34,10 @@
 - **Ruling:** Messenger product limits are keyed by authenticated user ID and action in a dedicated fixed-window limiter; the existing IP limiter remains a separate global abuse layer. Cost if wrong: a fixed window is simpler than a sliding window and permits boundary bursts, but enforces the exact approved request ceilings without conflating users behind one IP.
 - **Ruling:** handler JSON bodies are capped at 16 KiB and sender identity is never represented in request DTOs. Extra client-supplied sender fields are ignored; acting identity comes only from JWT middleware context `user_id`.
 - **GREEN:** commit `eb9dcdc4db578f1cec66c5968f673b8de2f91b12`; Verify HALO run `39248923696`; complete Messenger route tests, exact rate-limit boundary tests, backend tests/vet/API build, runtime migrations, and existing client tests/typecheck all passed.
+
+## Task 4 — Post-commit Redis event publishing
+
+- **RED:** commit `3fbab79e43c6d4e5ad243b55bf55e6fa76d93482`; Verify HALO run `39249336774`; backend failed only on missing Event/EventPublisher symbols and the old single-argument `NewService`, confirming the new tests were exercising the intended absent event layer.
+- **Ruling:** event payloads contain only state-transition identifiers (`conversation_id`, `message_id`, actor/target user IDs, request status) and never message bodies. Publisher failure is logged with identifiers only and is deliberately ignored after the database mutation has succeeded.
+- **Ruling:** `NewService` accepts an optional publisher and defaults to a no-op publisher, preserving all existing service tests/degraded operation while production wires the existing Redis client to channel `nscene:messenger:events`.
+- **GREEN:** commit `484d82655a30ce479c0a7dd1f0d8bbb4df117dc8`; Verify HALO run `39249817783`; event tests, backend tests/vet/API build, client tests/typecheck, four migrations, runtime Docker image, and hardened-media constraints all passed.
