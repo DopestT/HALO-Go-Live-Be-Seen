@@ -1,25 +1,15 @@
 #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process';
+import { mitigations, verifyMitigations } from './dependency-mitigations.mjs';
 
-const allowed = new Map([
-  [
-    'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm',
-    {
-      expires: '2026-10-18T00:00:00Z',
-      reason:
-        'Unpatched braces stack-exhaustion advisory reached through Metro/Jest build tooling. No user-controlled glob patterns are accepted by HALO runtime.',
-    },
-  ],
-  [
-    'https://github.com/advisories/GHSA-86w9-cpqp-85rv',
-    {
-      expires: '2026-10-18T00:00:00Z',
-      reason:
-        'Unpatched node-forge RSA verification advisory reached through Expo build/code-signing tooling. HALO does not ship Expo CLI in the application runtime and does not accept untrusted certificate material in the app.',
-    },
-  ],
-]);
+try {
+  verifyMitigations();
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
+const mitigated = new Map(mitigations.map(mitigation => [mitigation.advisory, mitigation]));
 
 let raw;
 try {
@@ -44,8 +34,12 @@ try {
   process.exit(2);
 }
 
-const vulnerabilities = report.vulnerabilities ?? {};
-const now = Date.now();
+if (report.error || !report.vulnerabilities || typeof report.vulnerabilities !== 'object' ||
+  Array.isArray(report.vulnerabilities) || report.auditReportVersion !== 2) {
+  console.error('npm audit did not return a valid version 2 vulnerability report.');
+  process.exit(2);
+}
+const vulnerabilities = report.vulnerabilities;
 const advisories = new Map();
 
 // npm assigns an aggregate severity to packages that depend on vulnerable
@@ -72,24 +66,18 @@ for (const [packageName, vuln] of Object.entries(vulnerabilities)) {
 }
 
 const blocked = [];
-const waived = new Map();
+const verified = new Map();
 
 for (const [key, advisory] of advisories) {
-  const exception = advisory.url ? allowed.get(advisory.url) : undefined;
-  if (!exception) {
+  const mitigation = advisory.url ? mitigated.get(advisory.url) : undefined;
+  if (!mitigation || advisory.packageName !== mitigation.packageName) {
     blocked.push(
       `${advisory.packageName}: ${advisory.severity} ${advisory.url ?? advisory.title ?? advisory.range ?? key}`,
     );
     continue;
   }
 
-  const expiry = Date.parse(exception.expires);
-  if (!Number.isFinite(expiry) || now >= expiry) {
-    blocked.push(`${advisory.packageName}: temporary exception expired for ${advisory.url}`);
-    continue;
-  }
-
-  waived.set(advisory.url, exception);
+  verified.set(advisory.url, mitigation);
 }
 
 if (blocked.length > 0) {
@@ -98,11 +86,11 @@ if (blocked.length > 0) {
   process.exit(1);
 }
 
-if (waived.size > 0) {
-  console.warn('Temporary, exact advisory exceptions in effect:');
-  for (const [url, exception] of waived) {
-    console.warn(`- ${url} — expires ${exception.expires}`);
-    console.warn(`  ${exception.reason}`);
+if (verified.size > 0) {
+  console.warn('Upstream advisories remain; exact installed local mitigations verified:');
+  for (const [url, mitigation] of verified) {
+    console.warn(`- ${url} — ${mitigation.packageName}@${mitigation.version}`);
+    console.warn(`  ${mitigation.reason}`);
   }
 }
 
