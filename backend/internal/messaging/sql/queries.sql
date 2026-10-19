@@ -76,14 +76,14 @@ SET last_message_at = CURRENT_TIMESTAMP,
 WHERE id = sqlc.arg(conversation_id);
 
 -- name: UpdateLastReadMessage :exec
-UPDATE conversation_participants
-SET last_read_message_id = sqlc.arg(message_id)
-WHERE conversation_id = sqlc.arg(conversation_id)
-  AND user_id = sqlc.arg(user_id)
+UPDATE conversation_participants cp
+SET last_read_message_id = sqlc.arg(message_ref)
+WHERE cp.conversation_id = sqlc.arg(conversation_ref)
+  AND cp.user_id = sqlc.arg(reader_id)
   AND EXISTS (
-      SELECT 1 FROM messages
-      WHERE messages.id = sqlc.arg(message_id)
-        AND messages.conversation_id = sqlc.arg(conversation_id)
+      SELECT 1 FROM messages m
+      WHERE m.id = sqlc.arg(message_ref)
+        AND m.conversation_id = sqlc.arg(conversation_ref)
   );
 
 -- name: CountUnreadMessages :one
