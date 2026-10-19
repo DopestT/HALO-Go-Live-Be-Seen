@@ -11,6 +11,7 @@ import (
 
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/auth"
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/database"
+	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/messaging"
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/middleware"
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/internal/video"
 	"github.com/DopestT/HALO-Go-Live-Be-Seen/backend/pkg/config"
@@ -43,14 +44,17 @@ func main() {
 
 	authRepo := auth.NewPostgresRepository(db.DB)
 	videoRepo := video.NewPostgresRepository(db.DB)
+	messagingRepo := messaging.NewPostgresRepository(db.DB)
 
 	authService := auth.NewService(authRepo)
 	videoService := video.NewService(videoRepo, redisClient)
+	messagingService := messaging.NewService(messagingRepo)
 
 	jwtManager := auth.NewJWTManager(cfg.JWT.SecretKey, cfg.JWT.ExpirationHours)
 
 	authHandler := auth.NewHandler(authService, jwtManager)
 	videoHandler := video.NewHandler(videoService)
+	messagingHandler := messaging.NewHandler(messagingService, messaging.NewUserRateLimiter(time.Now))
 
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -108,6 +112,10 @@ func main() {
 		{
 			videoProtected.POST("/:id/engagement/:metric", videoHandler.IncrementEngagement)
 		}
+
+		messageRoutes := v1.Group("/messages")
+		messageRoutes.Use(middleware.AuthMiddleware(jwtManager))
+		messagingHandler.RegisterRoutes(messageRoutes)
 
 		v1.GET("/users/:user_id/videos", videoHandler.GetUserVideos)
 		v1.GET("/creators", authHandler.ListPublicCreators)
