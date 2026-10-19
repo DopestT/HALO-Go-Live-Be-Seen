@@ -77,13 +77,13 @@ WHERE id = sqlc.arg(conversation_id);
 
 -- name: UpdateLastReadMessage :exec
 UPDATE conversation_participants cp
-SET last_read_message_id = sqlc.arg(message_ref)
-WHERE cp.conversation_id = sqlc.arg(conversation_ref)
-  AND cp.user_id = sqlc.arg(reader_id)
+SET last_read_message_id = sqlc.arg(message_id)
+WHERE cp.conversation_id = sqlc.arg(conversation_id)
+  AND cp.user_id = sqlc.arg(user_id)
   AND EXISTS (
       SELECT 1 FROM messages m
-      WHERE m.id = sqlc.arg(message_ref)
-        AND m.conversation_id = sqlc.arg(conversation_ref)
+      WHERE m.id = sqlc.arg(message_id)
+        AND m.conversation_id = cp.conversation_id
   );
 
 -- name: CountUnreadMessages :one
