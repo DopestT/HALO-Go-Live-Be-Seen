@@ -46,7 +46,17 @@ func (r *PostgresRepository) CreateConversationWithInitialMessage(ctx context.Co
 		return Conversation{}, Message{}, err
 	}
 	defer func() { _ = tx.Rollback() }()
+	if err := lockUserPair(ctx, tx, low, high); err != nil {
+		return Conversation{}, Message{}, err
+	}
 	q := dbgen.New(tx)
+	blocked, err := q.IsBlockedBetween(ctx, dbgen.IsBlockedBetweenParams{UserA: actorID, UserB: targetID})
+	if err != nil {
+		return Conversation{}, Message{}, err
+	}
+	if blocked {
+		return Conversation{}, Message{}, ErrUserBlocked
+	}
 
 	row, err := q.CreateDirectConversation(ctx, dbgen.CreateDirectConversationParams{
 		CreatedBy: actorID,
@@ -207,16 +217,23 @@ func (r *PostgresRepository) SendMessage(ctx context.Context, conversationID, se
 	if r == nil || r.db == nil {
 		return Message{}, ErrInternal
 	}
+	low, high := canonicalPair(senderID, recipientID)
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Message{}, err
 	}
 	defer func() { _ = tx.Rollback() }()
+	if err := lockUserPair(ctx, tx, low, high); err != nil {
+		return Message{}, err
+	}
 	q := dbgen.New(tx)
 
-	conversation, err := q.GetConversation(ctx, conversationID)
+	conversation, err := q.GetConversationForUpdate(ctx, conversationID)
 	if err != nil {
 		return Message{}, mapNotFound(err)
+	}
+	if !((conversation.DirectUserLowID == low && conversation.DirectUserHighID == high)) {
+		return Message{}, ErrForbidden
 	}
 	if RequestStatus(conversation.RequestStatus) != RequestAccepted {
 		if RequestStatus(conversation.RequestStatus) == RequestDeclined {
@@ -252,10 +269,24 @@ func (r *PostgresRepository) UpdateRequestStatus(ctx context.Context, conversati
 		return Conversation{}, ErrInternal
 	}
 	row, err := r.queries.UpdateConversationRequestStatus(ctx, dbgen.UpdateConversationRequestStatusParams{ConversationID: conversationID, RequestStatus: string(status)})
-	if err != nil {
-		return Conversation{}, mapNotFound(err)
+	if err == nil {
+		return conversationFromDB(row), nil
 	}
-	return conversationFromDB(row), nil
+	if !errors.Is(err, sql.ErrNoRows) {
+		return Conversation{}, err
+	}
+	current, currentErr := r.queries.GetConversation(ctx, conversationID)
+	if currentErr != nil {
+		return Conversation{}, mapNotFound(currentErr)
+	}
+	currentConversation := conversationFromDB(current)
+	if currentConversation.RequestStatus == status {
+		return currentConversation, nil
+	}
+	if currentConversation.RequestStatus == RequestDeclined {
+		return Conversation{}, ErrMessageRequestDeclined
+	}
+	return Conversation{}, ErrForbidden
 }
 
 func (r *PostgresRepository) MarkRead(ctx context.Context, conversationID, actorID, messageID int64) error {
@@ -276,12 +307,19 @@ func (r *PostgresRepository) BlockUser(ctx context.Context, blockerID, blockedID
 	if r == nil || r.db == nil {
 		return ErrInternal
 	}
+	low, high := canonicalPair(blockerID, blockedID)
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
+	if err := lockUserPair(ctx, tx, low, high); err != nil {
+		return err
+	}
 	q := dbgen.New(tx)
+	if _, err := q.FindDirectConversationForUpdate(ctx, dbgen.FindDirectConversationForUpdateParams{UserLowID: low, UserHighID: high}); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
 	if err := q.CreateUserBlock(ctx, dbgen.CreateUserBlockParams{BlockerID: blockerID, BlockedUserID: blockedID}); err != nil {
 		return err
 	}
@@ -300,10 +338,23 @@ WHERE cp.conversation_id = c.id
 }
 
 func (r *PostgresRepository) UnblockUser(ctx context.Context, blockerID, blockedID int64) error {
-	if r == nil || r.queries == nil {
+	if r == nil || r.db == nil {
 		return ErrInternal
 	}
-	return r.queries.DeleteUserBlock(ctx, dbgen.DeleteUserBlockParams{BlockerID: blockerID, BlockedUserID: blockedID})
+	low, high := canonicalPair(blockerID, blockedID)
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := lockUserPair(ctx, tx, low, high); err != nil {
+		return err
+	}
+	q := dbgen.New(tx)
+	if err := q.DeleteUserBlock(ctx, dbgen.DeleteUserBlockParams{BlockerID: blockerID, BlockedUserID: blockedID}); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (r *PostgresRepository) CreateReport(ctx context.Context, report Report) (Report, error) {
@@ -371,6 +422,25 @@ func canonicalPair(a, b int64) (int64, int64) {
 		return a, b
 	}
 	return b, a
+}
+
+func lockUserPair(ctx context.Context, tx *sql.Tx, low, high int64) error {
+	rows, err := tx.QueryContext(ctx, `SELECT id FROM users WHERE id IN ($1, $2) ORDER BY id FOR UPDATE`, low, high)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	count := 0
+	for rows.Next() {
+		count++
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if count != 2 {
+		return ErrUserNotFound
+	}
+	return nil
 }
 
 func mapNotFound(err error) error {
