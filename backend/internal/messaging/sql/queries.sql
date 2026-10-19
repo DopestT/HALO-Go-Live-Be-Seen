@@ -93,11 +93,22 @@ SELECT EXISTS (
 
 -- name: InsertModerationReport :one
 INSERT INTO moderation_reports (
+    id,
     reporter_user_id,
-    target_type,
-    target_id,
+    messenger_target_type,
+    messenger_target_id,
     conversation_id,
     reason_code,
-    detail
-) VALUES ($1, $2, $3, $4, $5, $6)
+    detail,
+    status
+) VALUES (
+    gen_random_uuid(),
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    COALESCE($6, ''),
+    'open'
+)
 RETURNING *;
