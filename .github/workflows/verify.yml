@@ -46,6 +46,8 @@ jobs:
         with:
           go-version: '1.27.2'
           cache-dependency-path: backend/go.sum
+      - name: Generate Messenger query code
+        run: go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
       - name: Test
         run: go test ./...
       - name: Vet
@@ -86,7 +88,7 @@ jobs:
           set -euo pipefail
           sh backend/scripts/migrate.sh
           sh backend/scripts/migrate.sh
-          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "4"
       - name: Verify runtime image migration layout
         run: |
           set -euo pipefail
@@ -94,7 +96,7 @@ jobs:
           docker run --rm --network host \
             -e DATABASE_URL="$DATABASE_URL" \
             --entrypoint sh nscene-api-ci /app/scripts/migrate.sh
-          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "3"
+          test "$(psql "$DATABASE_URL" -Atc "SELECT count(*) FROM schema_migrations;")" = "4"
       - name: Verify hardened media constraints fail closed
         run: |
           set -euo pipefail
