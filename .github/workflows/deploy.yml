@@ -37,22 +37,22 @@ jobs:
 
       - name: Require Expo CI authentication
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_TOKEN: ${{ secrets.EXPO }}
         run: |
           set -euo pipefail
           if [ -z "${EXPO_TOKEN:-}" ]; then
-            echo "::error::EXPO_TOKEN is not configured for this repository. Add a scoped Expo access token before production builds can run."
+            echo "::error::Repository Actions secret EXPO is missing or unavailable. Add a scoped Expo access token named EXPO before production builds can run."
             exit 1
           fi
 
       - name: Validate EAS production configuration
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_TOKEN: ${{ secrets.EXPO }}
         run: |
           npx --yes eas-cli@24.8.0 config --platform ios --profile production --non-interactive >/dev/null
           npx --yes eas-cli@24.8.0 config --platform android --profile production --non-interactive >/dev/null
 
       - name: Build production apps with pinned EAS CLI
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_TOKEN: ${{ secrets.EXPO }}
         run: npx --yes eas-cli@24.8.0 build --platform all --profile production --non-interactive --wait
