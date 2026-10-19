@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "migrations"
+    queries: "internal/messaging/sql/queries.sql"
+    gen:
+      go:
+        package: "dbgen"
+        out: "internal/messaging/dbgen"
+        sql_package: "database/sql"
+        emit_json_tags: true
+        emit_empty_slices: true
