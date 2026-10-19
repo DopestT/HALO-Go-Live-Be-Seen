@@ -10,3 +10,13 @@ sql:
         sql_package: "database/sql"
         emit_json_tags: true
         emit_empty_slices: true
+        omit_unused_structs: true
+        overrides:
+          - db_type: "uuid"
+            nullable: false
+            go_type: "string"
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "database/sql"
+              type: "NullString"
