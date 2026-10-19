@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"context"
+	"log"
 	"strings"
 	"unicode/utf8"
 )
@@ -31,11 +32,16 @@ type Store interface {
 }
 
 type Service struct {
-	store Store
+	store     Store
+	publisher EventPublisher
 }
 
-func NewService(store Store) *Service {
-	return &Service{store: store}
+func NewService(store Store, publishers ...EventPublisher) *Service {
+	publisher := EventPublisher(noopEventPublisher{})
+	if len(publishers) > 0 && publishers[0] != nil {
+		publisher = publishers[0]
+	}
+	return &Service{store: store, publisher: publisher}
 }
 
 func (s *Service) CreateConversation(ctx context.Context, actorID, targetID int64, body string) (Conversation, Message, error) {
@@ -58,7 +64,19 @@ func (s *Service) CreateConversation(ctx context.Context, actorID, targetID int6
 	if err != nil {
 		return Conversation{}, Message{}, err
 	}
-	return s.store.CreateConversationWithInitialMessage(ctx, actorID, targetID, normalized)
+	conversation, message, err := s.store.CreateConversationWithInitialMessage(ctx, actorID, targetID, normalized)
+	if err != nil {
+		return Conversation{}, Message{}, err
+	}
+	s.publishBestEffort(ctx, Event{
+		Type: EventConversationRequested,
+		ConversationID: conversation.ID,
+		MessageID: message.ID,
+		ActorUserID: actorID,
+		TargetUserID: targetID,
+		RequestStatus: conversation.RequestStatus,
+	})
+	return conversation, message, nil
 }
 
 func (s *Service) ListConversations(ctx context.Context, actorID int64, bucket Bucket, cursor int64, limit int32) ([]ConversationSummary, error) {
@@ -115,7 +133,19 @@ func (s *Service) SendMessage(ctx context.Context, actorID, conversationID int64
 	if err != nil {
 		return Message{}, err
 	}
-	return s.store.SendMessage(ctx, conversationID, actorID, recipientID, normalized)
+	message, err := s.store.SendMessage(ctx, conversationID, actorID, recipientID, normalized)
+	if err != nil {
+		return Message{}, err
+	}
+	s.publishBestEffort(ctx, Event{
+		Type: EventMessagePersisted,
+		ConversationID: conversationID,
+		MessageID: message.ID,
+		ActorUserID: actorID,
+		TargetUserID: recipientID,
+		RequestStatus: RequestAccepted,
+	})
+	return message, nil
 }
 
 func (s *Service) AcceptRequest(ctx context.Context, actorID, conversationID int64) (Conversation, error) {
@@ -137,6 +167,7 @@ func (s *Service) transitionRequest(ctx context.Context, actorID, conversationID
 	if conversation.CreatedBy == actorID {
 		return Conversation{}, ErrForbidden
 	}
+	targetUserID, _ := conversation.OtherParticipant(actorID)
 	switch conversation.RequestStatus {
 	case RequestDeclined:
 		return Conversation{}, ErrMessageRequestDeclined
@@ -146,7 +177,22 @@ func (s *Service) transitionRequest(ctx context.Context, actorID, conversationID
 		}
 		return Conversation{}, ErrForbidden
 	case RequestPending:
-		return s.store.UpdateRequestStatus(ctx, conversationID, target)
+		updated, err := s.store.UpdateRequestStatus(ctx, conversationID, target)
+		if err != nil {
+			return Conversation{}, err
+		}
+		eventType := EventConversationAccepted
+		if target == RequestDeclined {
+			eventType = EventConversationDeclined
+		}
+		s.publishBestEffort(ctx, Event{
+			Type: eventType,
+			ConversationID: conversationID,
+			ActorUserID: actorID,
+			TargetUserID: targetUserID,
+			RequestStatus: updated.RequestStatus,
+		})
+		return updated, nil
 	default:
 		return Conversation{}, ErrForbidden
 	}
@@ -159,10 +205,23 @@ func (s *Service) MarkRead(ctx context.Context, actorID, conversationID, message
 	if messageID <= 0 {
 		return ErrForbidden
 	}
-	if _, err := s.loadParticipantConversation(ctx, actorID, conversationID); err != nil {
+	conversation, err := s.loadParticipantConversation(ctx, actorID, conversationID)
+	if err != nil {
 		return err
 	}
-	return s.store.MarkRead(ctx, conversationID, actorID, messageID)
+	if err := s.store.MarkRead(ctx, conversationID, actorID, messageID); err != nil {
+		return err
+	}
+	targetUserID, _ := conversation.OtherParticipant(actorID)
+	s.publishBestEffort(ctx, Event{
+		Type: EventConversationRead,
+		ConversationID: conversationID,
+		MessageID: messageID,
+		ActorUserID: actorID,
+		TargetUserID: targetUserID,
+		RequestStatus: conversation.RequestStatus,
+	})
+	return nil
 }
 
 func (s *Service) HideConversation(ctx context.Context, actorID, conversationID int64) error {
@@ -185,7 +244,11 @@ func (s *Service) BlockUser(ctx context.Context, actorID, targetID int64) error 
 	if err := s.requireUser(ctx, targetID); err != nil {
 		return err
 	}
-	return s.store.BlockUser(ctx, actorID, targetID)
+	if err := s.store.BlockUser(ctx, actorID, targetID); err != nil {
+		return err
+	}
+	s.publishBestEffort(ctx, Event{Type: EventUserBlocked, ActorUserID: actorID, TargetUserID: targetID})
+	return nil
 }
 
 func (s *Service) UnblockUser(ctx context.Context, actorID, targetID int64) error {
@@ -198,7 +261,11 @@ func (s *Service) UnblockUser(ctx context.Context, actorID, targetID int64) erro
 	if err := s.requireUser(ctx, targetID); err != nil {
 		return err
 	}
-	return s.store.UnblockUser(ctx, actorID, targetID)
+	if err := s.store.UnblockUser(ctx, actorID, targetID); err != nil {
+		return err
+	}
+	s.publishBestEffort(ctx, Event{Type: EventUserUnblocked, ActorUserID: actorID, TargetUserID: targetID})
+	return nil
 }
 
 func (s *Service) CreateReport(ctx context.Context, actorID int64, input ReportInput) (Report, error) {
@@ -242,6 +309,15 @@ func (s *Service) UnreadCount(ctx context.Context, actorID int64) (int64, error)
 		return 0, err
 	}
 	return s.store.UnreadCount(ctx, actorID)
+}
+
+func (s *Service) publishBestEffort(ctx context.Context, event Event) {
+	if s == nil || s.publisher == nil {
+		return
+	}
+	if err := s.publisher.Publish(ctx, event); err != nil {
+		log.Printf("messenger event publish failed type=%s conversation_id=%d actor_user_id=%d target_user_id=%d: %v", event.Type, event.ConversationID, event.ActorUserID, event.TargetUserID, err)
+	}
 }
 
 func (s *Service) ready(actorID int64) error {
