@@ -112,11 +112,11 @@ The authoritative Messenger state lives in PostgreSQL through the existing NSCEN
 Required fields:
 
 - `id BIGSERIAL PRIMARY KEY`
-- `kind VARCHAR(...) NOT NULL DEFAULT 'direct'`
+- `kind VARCHAR(16) NOT NULL DEFAULT 'direct'`
 - `created_by BIGINT NOT NULL REFERENCES users(id)`
 - `direct_user_low_id BIGINT NOT NULL REFERENCES users(id)`
 - `direct_user_high_id BIGINT NOT NULL REFERENCES users(id)`
-- `request_status VARCHAR(...) NOT NULL`
+- `request_status VARCHAR(16) NOT NULL`
 - `created_at TIMESTAMP NOT NULL`
 - `updated_at TIMESTAMP NOT NULL`
 - `last_message_at TIMESTAMP NULL`
@@ -125,6 +125,7 @@ Constraints:
 
 - `direct_user_low_id < direct_user_high_id`;
 - unique pair on `(direct_user_low_id, direct_user_high_id)`;
+- V1 `kind` is `direct`;
 - V1 `request_status` values are `pending`, `accepted`, `declined`.
 
 The low/high pair is derived server-side from authenticated sender and target user IDs. Clients never choose or override the canonical ordering.
@@ -145,7 +146,7 @@ Primary key:
 
 Each direct conversation must have exactly two participant rows corresponding to the canonical user pair.
 
-`hidden_at` implements “Delete from inbox” for V1. It hides the thread for that user without deleting the other participant's history or destroying moderation evidence. A new accepted message to that participant clears the hidden state and makes the thread visible again.
+`hidden_at` implements “Delete from inbox” for V1. It hides the thread for that user without deleting the other participant's history or destroying moderation evidence. A new persisted message from the other participant in an accepted conversation clears only that recipient's `hidden_at` value and makes the thread visible again.
 
 ### `messages`
 
@@ -182,6 +183,8 @@ A user cannot block themself.
 
 If either participant has blocked the other, the backend rejects new message sends between the pair. A block also removes the conversation from the blocker's active inbox view.
 
+Blocking does not mutate `request_status`. On unblock, the conversation returns to its previous request state: an accepted conversation can resume messaging; a pending conversation remains pending; a declined conversation remains declined. A previously hidden thread remains hidden until the user deliberately reopens it or a later accepted incoming message clears that participant's hidden state.
+
 ### `moderation_reports`
 
 Messenger V1 requires a durable moderation report record if the backend does not already expose one suitable for messages/users.
@@ -192,10 +195,20 @@ Minimum fields:
 - target type (`message` or `user`);
 - target ID;
 - optional conversation ID when report originates from Messenger;
-- normalized reason code;
-- optional bounded text detail;
+- reason code;
+- optional text detail, maximum 1,000 Unicode characters;
 - created timestamp;
 - review status.
+
+V1 reason codes are:
+
+- `spam`
+- `harassment`
+- `hate_or_abuse`
+- `sexual_content`
+- `threat_or_violence`
+- `impersonation`
+- `other`
 
 The existing client-side reporting helper may be adapted to this backend contract, but client helper success must never substitute for durable server persistence.
 
@@ -203,7 +216,7 @@ The existing client-side reporting helper may be adapted to this backend contrac
 
 All Messenger endpoints live under the existing authenticated `/api/v1` backend and require the existing auth middleware.
 
-Recommended V1 endpoints:
+V1 endpoints:
 
 - `GET /api/v1/messages/conversations?bucket=inbox|requests&cursor=...`
 - `POST /api/v1/messages/conversations`
@@ -235,11 +248,19 @@ Security requirements:
 - reject direct-message creation to a nonexistent target;
 - reject self-messaging;
 - enforce message-length limits server-side;
-- apply endpoint-specific rate limits to conversation creation, message send, block, and report actions;
 - do not fetch arbitrary URLs from message text;
 - render message bodies as text, never executable HTML;
 - do not expose private email addresses or internal auth fields in participant payloads;
 - return stable public error codes for UI state rather than leaking database details.
+
+Baseline per-user rate limits for V1 are:
+
+- conversation creation: 10 attempts per hour;
+- message send: 30 attempts per minute;
+- reports: 20 attempts per hour;
+- block/unblock actions combined: 30 attempts per hour.
+
+Rate-limit rejection returns `rate_limit_exceeded`. These limits may be made stricter by operational configuration, but code must not silently allow a higher default.
 
 No V1 documentation or UI may claim end-to-end encryption unless a later implementation actually supplies and independently verifies it.
 
@@ -343,7 +364,12 @@ When video is not active, the authenticated header may update its unread badge. 
 
 Persistence correctness comes before realtime transport.
 
-V1 must function correctly with request/response synchronization. The client may refresh/poll unread and active-thread state at a bounded cadence while the app is foregrounded.
+V1 uses request/response synchronization plus foreground polling:
+
+- while the authenticated app is foregrounded, unread count and currently visible Messenger data refresh every 10 seconds;
+- a successful send, accept, decline, block, unblock, read, or hide action updates local state immediately from the server response rather than waiting for the next poll;
+- polling is suspended when the app/browser is backgrounded or the relevant surface is unmounted where the platform exposes that lifecycle;
+- network failures do not erase the last successfully loaded state and must surface a retry/offline indication.
 
 A later approved slice may add WebSocket/SSE/realtime delivery without changing the persistence contract.
 
@@ -353,7 +379,7 @@ This avoids making Messenger dependent on a new infrastructure subsystem during 
 
 Add a dedicated Messenger client boundary rather than placing HTTP calls inside screens.
 
-Recommended responsibilities:
+Responsibilities:
 
 - `src/api/messageClient.ts` — typed authenticated Messenger API calls;
 - `src/screens/messages/MessagesScreen.tsx` — inbox and responsive shell;
@@ -368,7 +394,7 @@ The screen layer must distinguish loading, empty, error, offline, pending, decli
 
 Add a focused backend messaging package consistent with existing backend patterns rather than embedding messaging logic into auth or video handlers.
 
-Recommended responsibilities:
+Responsibilities:
 
 - models / request-response DTOs;
 - repository queries;
@@ -382,7 +408,7 @@ The backend is authoritative for conversation/request/block/read state.
 
 ## 15. Error Semantics
 
-Client-visible error classes should be stable and intentional. Minimum categories:
+Client-visible error classes are:
 
 - `unauthorized`
 - `forbidden`
@@ -412,13 +438,15 @@ Backend tests must cover at minimum:
 - decline transition;
 - send rejection after decline;
 - block enforcement in both directions;
-- unblock behavior;
+- unblock restores the prior request state rather than creating a new thread;
+- rate-limit boundaries;
 - 4,000-character boundary;
 - empty-message rejection;
 - durable read-state update;
 - unread-count correctness;
 - hide-from-inbox isolation per participant;
-- report persistence;
+- report reason validation and persistence;
+- 1,000-character report-detail boundary;
 - pagination boundary behavior.
 
 Client tests must cover at minimum:
@@ -430,6 +458,7 @@ Client tests must cover at minimum:
 - declined and blocked states;
 - send failure + retry without false delivery;
 - unread badge rendering;
+- 10-second foreground refresh behavior without duplicate timers;
 - message notification does not overlay or interrupt active video;
 - compact vs wide Messenger composition where current test tooling permits.
 
@@ -439,7 +468,7 @@ Existing verification, typecheck, security-policy, and backend test suites must 
 
 V1 stores message content on NSCENE-controlled backend infrastructure. The product must not represent this as end-to-end encrypted.
 
-Logs should avoid recording plaintext message bodies except where explicitly required for controlled debugging and never by default in production request logs.
+Logs must not record plaintext message bodies by default in production request logs. Controlled local debugging may inspect test message bodies, but production logging code must avoid message-body payloads.
 
 Moderation access, retention policy, legal process handling, user export/deletion semantics, and any encryption-at-rest policy are broader platform governance decisions and are not silently invented by this V1 feature. The implementation must preserve enough structure to add those policies later without treating current behavior as a privacy promise that does not exist.
 
