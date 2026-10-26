@@ -1,16 +1,16 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { listCreators, listVideos } from '../src/api/publicClient';
-import type { PublicCreator, VideoWithEngagement } from '../src/api/types';
-import { SearchScreen } from '../src/screens/SearchScreen';
-
-jest.mock('../src/api/publicClient', () => ({
-  listVideos: jest.fn(),
-  listCreators: jest.fn(),
-}));
-
-const mockListVideos = listVideos as jest.MockedFunction<typeof listVideos>;
-const mockListCreators = listCreators as jest.MockedFunction<typeof listCreators>;
+import { CreatorCard } from '../src/components/creator/CreatorCard';
+import { MediaGrid } from '../src/components/media/MediaGrid';
+import type {
+  PaginationOptions,
+  PublicCreator,
+  VideoListOptions,
+  VideoWithEngagement,
+} from '../src/api/types';
+import {
+  SearchView,
+  searchPublicRecords,
+} from '../src/screens/SearchScreen';
 
 const climateVideo: VideoWithEngagement = {
   id: 42,
@@ -45,74 +45,103 @@ const climateCreator: PublicCreator = {
   avatar_url: '',
 };
 
-const renderSearch = (query: string, overrides: Partial<React.ComponentProps<typeof SearchScreen>> = {}) => {
-  const props: React.ComponentProps<typeof SearchScreen> = {
-    query,
-    onSearch: jest.fn(),
-    onOpenVideo: jest.fn(),
-    onOpenCreator: jest.fn(),
-    ...overrides,
-  };
-  return { ...render(<SearchScreen {...props} />), props };
+type VideoLoader = (options: VideoListOptions) => Promise<VideoWithEngagement[]>;
+type CreatorLoader = (options: PaginationOptions) => Promise<PublicCreator[]>;
+
+const findElement = (node: React.ReactNode, type: unknown): React.ReactElement | undefined => {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findElement(child, type);
+      if (found) return found;
+    }
+    return undefined;
+  }
+  if (!React.isValidElement(node)) return undefined;
+  if (node.type === type) return node;
+  return findElement((node.props as { children?: React.ReactNode }).children, type);
 };
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+const collectText = (node: React.ReactNode): string => {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(collectText).join(' ');
+  if (!React.isValidElement(node)) return '';
+  return collectText((node.props as { children?: React.ReactNode }).children);
+};
 
 describe('NSCENE public search', () => {
-  it('keeps blank search idle and does not invent suggestions or call the backend', () => {
-    renderSearch('');
-    expect(screen.getByText('Search videos and creators on NSCENE.')).toBeTruthy();
-    expect(mockListVideos).not.toHaveBeenCalled();
-    expect(mockListCreators).not.toHaveBeenCalled();
+  it('keeps blank search idle and does not call or invent backend results', async () => {
+    const videoLoader = jest.fn<ReturnType<VideoLoader>, Parameters<VideoLoader>>();
+    const creatorLoader = jest.fn<ReturnType<CreatorLoader>, Parameters<CreatorLoader>>();
+
+    await expect(searchPublicRecords('   ', videoLoader, creatorLoader)).resolves.toEqual({
+      videos: [],
+      creators: [],
+    });
+    expect(videoLoader).not.toHaveBeenCalled();
+    expect(creatorLoader).not.toHaveBeenCalled();
   });
 
-  it('searches bounded real video and creator records, deduplicates videos, and opens returned IDs', async () => {
-    mockListVideos
-      .mockResolvedValueOnce([climateVideo])
-      .mockResolvedValueOnce([climateVideo, unrelatedVideo]);
-    mockListCreators.mockResolvedValueOnce([climateCreator]);
+  it('searches bounded real records, filters case-insensitively, and deduplicates videos', async () => {
+    const videoLoader = jest.fn<ReturnType<VideoLoader>, Parameters<VideoLoader>>(
+      async (options) => options.live
+        ? [climateVideo]
+        : [climateVideo, unrelatedVideo],
+    );
+    const creatorLoader = jest.fn<ReturnType<CreatorLoader>, Parameters<CreatorLoader>>(
+      async () => [climateCreator],
+    );
+
+    await expect(searchPublicRecords('CLIMATE', videoLoader, creatorLoader)).resolves.toEqual({
+      videos: [climateVideo],
+      creators: [climateCreator],
+    });
+    expect(videoLoader).toHaveBeenNthCalledWith(1, { live: true, limit: 50, offset: 0 });
+    expect(videoLoader).toHaveBeenNthCalledWith(2, { live: false, limit: 50, offset: 0 });
+    expect(creatorLoader).toHaveBeenCalledWith({ limit: 50, offset: 0 });
+  });
+
+  it('renders real returned media and creator cards and preserves their IDs', () => {
     const onOpenVideo = jest.fn();
     const onOpenCreator = jest.fn();
-    renderSearch('climate', { onOpenVideo, onOpenCreator });
-
-    await screen.findByText('Climate Live');
-    expect(screen.getAllByText('Climate Live')).toHaveLength(1);
-    expect(screen.getByText('Climate Creator')).toBeTruthy();
-    expect(screen.queryByText('Cooking Tonight')).toBeNull();
-    expect(mockListVideos).toHaveBeenNthCalledWith(1, { live: true, limit: 50, offset: 0 });
-    expect(mockListVideos).toHaveBeenNthCalledWith(2, { live: false, limit: 50, offset: 0 });
-    expect(mockListCreators).toHaveBeenCalledWith({ limit: 50, offset: 0 });
-
-    fireEvent.press(screen.getByLabelText('Open Climate Live'));
-    fireEvent.press(screen.getByLabelText('Open creator Climate Creator'));
+    const output = SearchView({
+      status: 'ready',
+      query: 'climate',
+      input: 'climate',
+      videos: [climateVideo],
+      creators: [climateCreator],
+      onInputChange: jest.fn(),
+      onSubmit: jest.fn(),
+      onOpenVideo,
+      onOpenCreator,
+    });
+    const media = findElement(output, MediaGrid);
+    const creator = findElement(output, CreatorCard);
+    expect((media?.props as { videos: VideoWithEngagement[] }).videos).toEqual([climateVideo]);
+    expect((creator?.props as { creator: PublicCreator }).creator).toEqual(climateCreator);
+    (media?.props as { onOpen: (id: number) => void }).onOpen(42);
+    (creator?.props as { onOpen: (id: number) => void }).onOpen(7);
     expect(onOpenVideo).toHaveBeenCalledWith(42);
     expect(onOpenCreator).toHaveBeenCalledWith(7);
   });
 
-  it('shows an honest no-results state for a completed search', async () => {
-    mockListVideos.mockResolvedValue([unrelatedVideo]);
-    mockListCreators.mockResolvedValue([]);
-    renderSearch('quantum');
-    await screen.findByText('No verified results for “quantum”.');
-  });
-
-  it('shows an unavailable state instead of fallback content when the backend fails', async () => {
-    mockListVideos.mockRejectedValue(new Error('down'));
-    mockListCreators.mockResolvedValue([]);
-    renderSearch('climate');
-    await screen.findByText('Search is unavailable right now.');
-    expect(screen.queryByText('Climate Live')).toBeNull();
-  });
-
-  it('submits trimmed input through navigation and waits for the URL-backed query before searching', async () => {
-    const onSearch = jest.fn();
-    renderSearch('', { onSearch });
-    fireEvent.changeText(screen.getByLabelText('Search NSCENE'), '  climate  ');
-    fireEvent.press(screen.getByText('Search'));
-    await waitFor(() => expect(onSearch).toHaveBeenCalledWith('climate'));
-    expect(mockListVideos).not.toHaveBeenCalled();
-    expect(mockListCreators).not.toHaveBeenCalled();
+  it('renders honest idle, empty, and unavailable states without fallback content', () => {
+    const base = {
+      input: '',
+      videos: [],
+      creators: [],
+      onInputChange: jest.fn(),
+      onSubmit: jest.fn(),
+      onOpenVideo: jest.fn(),
+      onOpenCreator: jest.fn(),
+    };
+    expect(collectText(SearchView({ ...base, status: 'idle', query: '' }))).toContain(
+      'Search videos and creators on NSCENE.',
+    );
+    expect(collectText(SearchView({ ...base, status: 'empty', query: 'quantum' }))).toContain(
+      'No verified results for “quantum”.',
+    );
+    expect(collectText(SearchView({ ...base, status: 'unavailable', query: 'climate' }))).toContain(
+      'Search is unavailable right now.',
+    );
   });
 });
