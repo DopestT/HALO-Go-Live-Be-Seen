@@ -120,7 +120,7 @@ export const SearchView = ({
       <Text style={styles.stateText}>Searching verified NSCENE records…</Text>
     ) : null}
     {status === 'empty' ? (
-      <Text style={styles.stateText}>No verified results for “{query}”.</Text>
+      <Text style={styles.stateText}>{`No verified results for “${query}”.`}</Text>
     ) : null}
     {status === 'unavailable' ? (
       <Text style={styles.stateText}>Search is unavailable right now.</Text>
