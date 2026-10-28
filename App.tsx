@@ -16,6 +16,7 @@ import { UploadsScreen } from './src/screens/UploadsScreen';
 import { WatchScreen } from './src/screens/WatchScreen';
 import { CreatorsScreen } from './src/screens/CreatorsScreen';
 import { CreatorProfileScreen } from './src/screens/CreatorProfileScreen';
+import { SearchScreen } from './src/screens/SearchScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { PublicLaneScreen } from './src/screens/PublicLaneScreen';
 import GoLiveFlow from './src/screens/stream/GoLiveFlow';
@@ -74,6 +75,7 @@ const AppContent: React.FC = () => {
 
   const openVideo = (videoId: number) => openRoute({ kind: 'watch', id: videoId });
   const openCreator = (creatorId: number) => openRoute({ kind: 'creator', id: creatorId });
+  const openSearch = (query = '') => openRoute({ kind: 'search', query: query.trim() });
 
   const publicContent = (publicSection: PublicSection) => {
     if (publicSection === 'live') return <DiscoveryFeed onOpen={openVideo} onSection={openSection} />;
@@ -87,6 +89,15 @@ const AppContent: React.FC = () => {
     content = <WatchScreen id={route.id} />;
   } else if (route.kind === 'creator') {
     content = <CreatorProfileScreen id={route.id} onOpenVideo={openVideo} />;
+  } else if (route.kind === 'search') {
+    content = (
+      <SearchScreen
+        query={route.query}
+        onSearch={openSearch}
+        onOpenVideo={openVideo}
+        onOpenCreator={openCreator}
+      />
+    );
   } else if (route.kind === 'not-found') {
     content = (
       <RoutePendingScreen
@@ -127,6 +138,27 @@ const AppContent: React.FC = () => {
     </TouchableOpacity>
   );
 
+  const searchControl = (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel="Search NSCENE"
+      style={styles.searchUtilityButton}
+      onPress={() => openSearch()}
+    >
+      <Text style={styles.searchUtilityText}>SEARCH</Text>
+    </TouchableOpacity>
+  );
+
+  const createControl = (
+    <TouchableOpacity
+      accessibilityRole="button"
+      onPress={() => openSection('studio')}
+      style={styles.createButton}
+    >
+      <Text style={styles.createText}>Create</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.app}>
       <StatusBar style="light" hidden={isLive} />
@@ -141,7 +173,13 @@ const AppContent: React.FC = () => {
             >
               <Text style={styles.brand}>{productIdentity.name}</Text>
             </TouchableOpacity>
-            {isCompact ? <View style={styles.headerActions}>{accountControl}<TouchableOpacity accessibilityRole="button" onPress={() => openSection('studio')} style={styles.createButton}><Text style={styles.createText}>Create</Text></TouchableOpacity></View> : null}
+            {isCompact ? (
+              <View style={styles.headerActions}>
+                {searchControl}
+                {accountControl}
+                {createControl}
+              </View>
+            ) : null}
           </View>
 
           <ScrollView
@@ -162,7 +200,13 @@ const AppContent: React.FC = () => {
             </View>
           </ScrollView>
 
-          {!isCompact ? <View style={styles.headerActions}>{accountControl}<TouchableOpacity accessibilityRole="button" onPress={() => openSection('studio')} style={styles.createButton}><Text style={styles.createText}>Create</Text></TouchableOpacity></View> : null}
+          {!isCompact ? (
+            <View style={styles.headerActions}>
+              {searchControl}
+              {accountControl}
+              {createControl}
+            </View>
+          ) : null}
 
           {isAuthenticated && accountMenuOpen && (
             <View style={[styles.accountMenu, isCompact && styles.accountMenuCompact]}>
@@ -224,6 +268,20 @@ export default function App() {
 
 const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  searchUtilityButton: {
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingHorizontal: 13,
+    borderWidth: 1,
+    borderColor: theme.colors.borderGray,
+    borderRadius: 999,
+  },
+  searchUtilityText: {
+    color: theme.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+  },
   createButton: { backgroundColor: '#ffda77', borderRadius: 7, minHeight: 40, paddingHorizontal: 20, justifyContent: 'center' },
   createText: { color: '#14150f', fontSize: 13, fontWeight: '800' },
   app: {

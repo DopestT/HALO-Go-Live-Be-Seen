@@ -1,6 +1,6 @@
 module github.com/DopestT/HALO-Go-Live-Be-Seen/backend
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/gin-contrib/cors v1.7.6
